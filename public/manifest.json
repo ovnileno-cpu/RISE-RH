@@ -1,0 +1,21 @@
+{
+  "name": "RISE HR",
+  "short_name": "RISE HR",
+  "description": "Système d'Information RH pour Madagascar",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1B2A4A",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/risehr/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/risehr/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

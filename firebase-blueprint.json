@@ -1,0 +1,179 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "manager", "employee"] },
+        "department": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Employee": {
+      "title": "Employee",
+      "description": "Detailed HR information for an employee",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "cin": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "contractType": { "type": "string", "enum": ["CDI", "CDD", "Stage"] },
+        "startDate": { "type": "string", "format": "date-time" },
+        "department": { "type": "string" },
+        "position": { "type": "string" },
+        "baseSalary": { "type": "number" },
+        "managerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["uid", "firstName", "lastName", "contractType", "baseSalary"]
+    },
+    "Leave": {
+      "title": "Leave Request",
+      "description": "Employee leave requests",
+      "type": "object",
+      "properties": {
+        "employeeId": { "type": "string" },
+        "type": { "type": "string", "enum": ["annuel", "maladie", "maternite", "paternite"] },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "approved_manager", "approved_rh", "rejected"] },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["employeeId", "type", "startDate", "endDate", "status"]
+    },
+    "Payroll": {
+      "title": "Payroll Record",
+      "description": "Monthly payslip record",
+      "type": "object",
+      "properties": {
+        "employeeId": { "type": "string" },
+        "month": { "type": "number" },
+        "year": { "type": "number" },
+        "baseSalary": { "type": "number" },
+        "cnapsEmployee": { "type": "number" },
+        "cnapsEmployer": { "type": "number" },
+        "osiemEmployee": { "type": "number" },
+        "osiemEmployer": { "type": "number" },
+        "irsa": { "type": "number" },
+        "netSalary": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["employeeId", "month", "year", "baseSalary", "netSalary"]
+    },
+    "JobOffer": {
+      "title": "Job Offer",
+      "description": "Recruitment job offer",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "department": { "type": "string" },
+        "location": { "type": "string" },
+        "contractType": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["ouvert", "en_cours", "cloture"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "department", "status"]
+    },
+    "Candidate": {
+      "title": "Candidate",
+      "description": "Job applicant",
+      "type": "object",
+      "properties": {
+        "jobOfferId": { "type": "string" },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string", "enum": ["recu", "preselectionne", "entretien", "decision", "retenu", "refuse"] },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["jobOfferId", "firstName", "lastName", "status"]
+    },
+    "Training": {
+      "title": "Training",
+      "description": "Training program",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "department": { "type": "string" },
+        "budget": { "type": "number" },
+        "status": { "type": "string", "enum": ["planned", "active", "completed"] }
+      },
+      "required": ["title", "department"]
+    },
+    "Evaluation": {
+      "title": "Evaluation",
+      "description": "Employee performance evaluation",
+      "type": "object",
+      "properties": {
+        "employeeId": { "type": "string" },
+        "managerId": { "type": "string" },
+        "campaign": { "type": "string" },
+        "score": { "type": "number" },
+        "comments": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["employeeId", "campaign", "score"]
+    },
+    "UserProgress": {
+      "title": "User Progress",
+      "description": "Tracking user onboarding and tutorial completion",
+      "type": "object",
+      "properties": {
+        "completedTutorials": { 
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["completedTutorials"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User accounts and roles"
+    },
+    "employees/{employeeId}": {
+      "schema": { "$ref": "#/entities/Employee" },
+      "description": "Detailed employee records"
+    },
+    "leaves/{leaveId}": {
+      "schema": { "$ref": "#/entities/Leave" },
+      "description": "Leave requests"
+    },
+    "payrolls/{payrollId}": {
+      "schema": { "$ref": "#/entities/Payroll" },
+      "description": "Payslips"
+    },
+    "jobOffers/{jobOfferId}": {
+      "schema": { "$ref": "#/entities/JobOffer" },
+      "description": "Job offers"
+    },
+    "candidates/{candidateId}": {
+      "schema": { "$ref": "#/entities/Candidate" },
+      "description": "Candidates pipeline"
+    },
+    "trainings/{trainingId}": {
+      "schema": { "$ref": "#/entities/Training" },
+      "description": "Training catalog"
+    },
+    "evaluations/{evaluationId}": {
+      "schema": { "$ref": "#/entities/Evaluation" },
+      "description": "Performance evaluations"
+    },
+    "userProgress/{userId}": {
+      "schema": { "$ref": "#/entities/UserProgress" },
+      "description": "User tutorial progress"
+    }
+  }
+}
