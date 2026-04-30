@@ -178,6 +178,12 @@ export default function EmployeesTab() {
       console.error("Error saving employee", error);
       if (error.code === 'auth/operation-not-allowed') {
         setFormError("L'authentification par Email/Mot de passe n'est pas activée. Veuillez l'activer dans la console Firebase (Authentication > Sign-in method).");
+      } else if (error.code === 'auth/email-already-in-use') {
+        setFormError("Cet e-mail est déjà utilisé par un autre compte.");
+      } else if (error.code === 'auth/invalid-email') {
+        setFormError("L'adresse e-mail n'est pas valide.");
+      } else if (error.code === 'auth/weak-password') {
+        setFormError("Le mot de passe est trop faible.");
       } else {
         setFormError(error.message || "Une erreur est survenue lors de l'enregistrement.");
       }
