@@ -5,9 +5,11 @@ import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { GraduationCap, BookOpen, Award, Plus } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
 
 export default function TrainingPage() {
   const { role } = useAuth();
+  const { t } = useI18n();
   const [trainings, setTrainings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -49,12 +51,12 @@ export default function TrainingPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Formation & Compétences</h1>
-          <p className="text-gray-500 mt-1">Catalogue de formations et suivi des compétences</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('training.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('training.subtitle')}</p>
         </div>
         {role !== 'employee' && (
           <button onClick={() => setShowModal(true)} className="bg-[#1B2A4A] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#2A3F6C] transition-colors">
-            <Plus size={16} /> Nouvelle formation
+            <Plus size={16} /> {t('training.new')}
           </button>
         )}
       </div>
@@ -66,12 +68,12 @@ export default function TrainingPage() {
               <BookOpen size={24} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Catalogue</h3>
-              <p className="text-sm text-gray-500">{trainings.length} formations dispo.</p>
+              <h3 className="font-semibold text-gray-900">{t('training.catalog')}</h3>
+              <p className="text-sm text-gray-500">{t('training.available').replace('{count}', String(trainings.length))}</p>
             </div>
           </div>
           <button className="w-full py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-            Parcourir
+            {t('training.browse')}
           </button>
         </div>
 
@@ -81,12 +83,12 @@ export default function TrainingPage() {
               <GraduationCap size={24} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Mes Formations</h3>
-              <p className="text-sm text-gray-500">0 en cours</p>
+              <h3 className="font-semibold text-gray-900">{t('training.myTrainings')}</h3>
+              <p className="text-sm text-gray-500">{t('training.inProgressCount')}</p>
             </div>
           </div>
           <button className="w-full py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
-            Voir le suivi
+            {t('training.viewTracking')}
           </button>
         </div>
 
@@ -96,32 +98,32 @@ export default function TrainingPage() {
               <Award size={24} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Compétences</h3>
-              <p className="text-sm text-gray-500">Cartographie</p>
+              <h3 className="font-semibold text-gray-900">{t('training.skills')}</h3>
+              <p className="text-sm text-gray-500">{t('training.mapping')}</p>
             </div>
           </div>
           <button className="w-full py-2 text-sm font-medium text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-            Évaluer
+            {t('training.evaluate')}
           </button>
         </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Plan de formation annuel</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('training.annualPlan')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="p-4 text-sm font-medium text-gray-500">Formation</th>
-                <th className="p-4 text-sm font-medium text-gray-500">Département</th>
-                <th className="p-4 text-sm font-medium text-gray-500">Durée (h)</th>
-                {role !== 'employee' && <th className="p-4 text-sm font-medium text-gray-500">Budget</th>}
-                <th className="p-4 text-sm font-medium text-gray-500">Statut</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.training')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.department')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.duration')}</th>
+                {role !== 'employee' && <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.budget')}</th>}
+                <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.status')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center">Chargement...</td></tr>
+                <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center">{t('common.loading')}</td></tr>
               ) : trainings.map(t => (
                 <tr key={t.id} className="border-b border-gray-50">
                   <td className="p-4 text-sm text-gray-900 font-medium">{t.title}</td>
@@ -130,13 +132,13 @@ export default function TrainingPage() {
                   {role !== 'employee' && <td className="p-4 text-sm text-gray-600">{t.budget.toLocaleString()} Ar</td>}
                   <td className="p-4 text-sm text-gray-600">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${t.status === 'planned' ? 'bg-amber-50 text-amber-700' : t.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                      {t.status === 'planned' ? 'Planifié' : t.status === 'active' ? 'En cours' : 'Terminé'}
+                      {t.status === 'planned' ? t('training.status.planned') : t.status === 'active' ? t('training.status.active') : t('training.status.completed')}
                     </span>
                   </td>
                 </tr>
               ))}
               {!loading && trainings.length === 0 && (
-                <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center text-gray-500">Aucune formation planifiée.</td></tr>
+                <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center text-gray-500">{t('training.none')}</td></tr>
               )}
             </tbody>
           </table>
@@ -146,22 +148,22 @@ export default function TrainingPage() {
       {showModal && role !== 'employee' && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Nouvelle formation</h3>
+            <h3 className="text-lg font-bold mb-4">{t('training.new')}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input required type="text" placeholder="Titre de la formation" className="w-full border rounded-lg p-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-              <input required type="text" placeholder="Département ciblé" className="w-full border rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
+              <input required type="text" placeholder="{t('training.titlePlaceholder')}" className="w-full border rounded-lg p-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+              <input required type="text" placeholder="{t('training.departmentPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
               <div className="grid grid-cols-2 gap-4">
-                <input required type="number" placeholder="Budget (Ar)" className="w-full border rounded-lg p-2" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} />
-                <input required type="number" placeholder="Durée (heures)" className="w-full border rounded-lg p-2" value={formData.hours || ''} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} />
+                <input required type="number" placeholder="{t('training.budgetPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} />
+                <input required type="number" placeholder="{t('training.hoursPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.hours || ''} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} />
               </div>
               <select className="w-full border rounded-lg p-2" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                <option value="planned">Planifié</option>
-                <option value="active">En cours</option>
-                <option value="completed">Terminé</option>
+                <option value="planned">{t('training.status.planned')}</option>
+                <option value="active">{t('training.status.active')}</option>
+                <option value="completed">{t('training.status.completed')}</option>
               </select>
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">Enregistrer</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">{t('common.cancel')}</button>
+                <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">{t('recruit.save')}</button>
               </div>
             </form>
           </div>

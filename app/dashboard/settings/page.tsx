@@ -8,7 +8,7 @@ import { KeyRound, ShieldCheck, Globe } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,12 +20,12 @@ export default function SettingsPage() {
     if (!user || !user.email) return;
 
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Les nouveaux mots de passe ne correspondent pas.' });
+      setMessage({ type: 'error', text: t('settings.passwordMismatch') });
       return;
     }
 
     if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Le mot de passe doit contenir au moins 6 caractères.' });
+      setMessage({ type: 'error', text: t('settings.passwordTooShort') });
       return;
     }
 
@@ -40,16 +40,16 @@ export default function SettingsPage() {
       // Update password
       await updatePassword(user, newPassword);
       
-      setMessage({ type: 'success', text: 'Mot de passe mis à jour avec succès.' });
+      setMessage({ type: 'success', text: t('settings.passwordUpdated') });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
       console.error("Error updating password:", error);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-        setMessage({ type: 'error', text: 'Le mot de passe actuel est incorrect.' });
+        setMessage({ type: 'error', text: t('settings.currentPasswordInvalid') });
       } else {
-        setMessage({ type: 'error', text: 'Une erreur est survenue lors de la mise à jour du mot de passe.' });
+        setMessage({ type: 'error', text: t('settings.passwordUpdateError') });
       }
     }
     setLoading(false);
@@ -58,8 +58,8 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Paramètres du compte</h1>
-        <p className="text-gray-500 mt-1">Gérez vos préférences et la sécurité de votre compte</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('settings.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('settings.subtitle')}</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -68,13 +68,13 @@ export default function SettingsPage() {
             <Globe size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Préférences</h2>
-            <p className="text-sm text-gray-500">Modifier la langue de l&apos;application</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('settings.preferences')}</h2>
+            <p className="text-sm text-gray-500">{t('settings.preferencesDesc')}</p>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Langue</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('settings.language')}</label>
           <div className="flex gap-4">
             <button
               onClick={() => setLang('fr')}
@@ -106,8 +106,8 @@ export default function SettingsPage() {
             <ShieldCheck size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Sécurité</h2>
-            <p className="text-sm text-gray-500">Modifier votre mot de passe</p>
+            <h2 className="text-lg font-semibold text-gray-900">{t('settings.security')}</h2>
+            <p className="text-sm text-gray-500">{t('settings.securityDesc')}</p>
           </div>
         </div>
 
@@ -119,7 +119,7 @@ export default function SettingsPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.currentPassword')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <KeyRound size={16} className="text-gray-400" />
@@ -135,7 +135,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.newPassword')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <KeyRound size={16} className="text-gray-400" />
@@ -151,7 +151,7 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('settings.confirmPassword')}</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <KeyRound size={16} className="text-gray-400" />
@@ -172,7 +172,7 @@ export default function SettingsPage() {
               disabled={loading}
               className="bg-[#1B2A4A] text-white px-4 py-2 rounded-lg hover:bg-[#2A3F6C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
+              {loading ? t('settings.updating') : t('settings.updatePassword')}
             </button>
           </div>
         </form>

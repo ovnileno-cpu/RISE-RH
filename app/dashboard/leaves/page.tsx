@@ -5,9 +5,11 @@ import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, addDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { CalendarOff, Clock, Plus, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
 
 export default function LeavesPage() {
-  const { user, role } = useAuth();
+  const { user } = useAuth();
+  const { t, lang } = useI18n();
   const [leaves, setLeaves] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -79,7 +81,7 @@ export default function LeavesPage() {
     const end = new Date(formData.endDate);
     
     if (end < start) {
-      setFormError('La date de fin ne peut pas être antérieure à la date de début.');
+      setFormError(t('leaves.error.endBeforeStart'));
       return;
     }
 
@@ -87,7 +89,7 @@ export default function LeavesPage() {
     const requestedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
     if (formData.type === 'annuel' && requestedDays > leaveBalance) {
-      setFormError(`Solde insuffisant. Vous demandez ${requestedDays} jours mais votre solde est de ${leaveBalance} jours.`);
+      setFormError(t('leaves.error.insufficient').replace('{requested}', String(requestedDays)).replace('{balance}', String(leaveBalance)));
       return;
     }
     
@@ -106,12 +108,12 @@ export default function LeavesPage() {
       fetchData();
     } catch (error) {
       console.error("Error submitting leave:", error);
-      setFormError('Une erreur est survenue lors de la soumission.');
+      setFormError(t('leaves.error.submit'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Êtes-vous sûr de vouloir annuler cette demande de congé ?')) {
+    if (confirm(t('leaves.confirmDelete'))) {
       try {
         await deleteDoc(doc(db, 'leaves', id));
         fetchData();
@@ -123,10 +125,10 @@ export default function LeavesPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending': return <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded text-xs font-medium"><Clock size={14} /> En attente</span>;
-      case 'approved_manager': return <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs font-medium"><CheckCircle2 size={14} /> Validé Manager</span>;
-      case 'approved_rh': return <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs font-medium"><CheckCircle2 size={14} /> Approuvé RH</span>;
-      case 'rejected': return <span className="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-medium"><XCircle size={14} /> Refusé</span>;
+      case 'pending': return <span className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded text-xs font-medium"><Clock size={14} /> {t('leaves.status.pending')}</span>;
+      case 'approved_manager': return <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs font-medium"><CheckCircle2 size={14} /> {t('leaves.status.approvedManager')}</span>;
+      case 'approved_rh': return <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs font-medium"><CheckCircle2 size={14} /> {t('leaves.status.approvedRh')}</span>;
+      case 'rejected': return <span className="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-medium"><XCircle size={14} /> {t('leaves.status.rejected')}</span>;
       default: return null;
     }
   };
@@ -135,11 +137,11 @@ export default function LeavesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Congés & Absences</h1>
-          <p className="text-gray-500 mt-1">Gérez vos demandes de congés et consultez votre solde</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('leaves.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('leaves.subtitle')}</p>
         </div>
         <button onClick={() => { setFormError(''); setShowModal(true); }} className="bg-[#1B2A4A] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#2A3F6C] transition-colors">
-          <Plus size={16} /> Nouvelle demande
+          <Plus size={16} /> {t('leaves.newRequest')}
         </button>
       </div>
 
@@ -150,41 +152,41 @@ export default function LeavesPage() {
               <CalendarOff size={24} />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Solde Congés Payés</p>
-              <h3 className="text-2xl font-bold text-gray-900">{leaveBalance} <span className="text-sm font-normal text-gray-500">jours</span></h3>
+              <p className="text-sm font-medium text-gray-500">{t('leaves.balancePaid')}</p>
+              <h3 className="text-2xl font-bold text-gray-900">{leaveBalance} <span className="text-sm font-normal text-gray-500">{t('leaves.days')}</span></h3>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-4">Acquis: 2.5 jours / mois</p>
+          <p className="text-xs text-gray-500 mt-4">{t('leaves.earnedRate')}</p>
         </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Historique de mes demandes</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('leaves.history')}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="p-4 text-sm font-medium text-gray-500">Type</th>
-                <th className="p-4 text-sm font-medium text-gray-500">Du</th>
-                <th className="p-4 text-sm font-medium text-gray-500">Au</th>
-                <th className="p-4 text-sm font-medium text-gray-500">Motif</th>
-                <th className="p-4 text-sm font-medium text-gray-500">Statut</th>
-                <th className="p-4 text-sm font-medium text-gray-500 text-right">Actions</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('leaves.table.type')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('leaves.table.from')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('leaves.table.to')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('leaves.table.reason')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500">{t('leaves.table.status')}</th>
+                <th className="p-4 text-sm font-medium text-gray-500 text-right">{t('leaves.table.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="p-4 text-center">Chargement...</td></tr>
+                <tr><td colSpan={6} className="p-4 text-center">{t('common.loading')}</td></tr>
               ) : leaves.map(leave => (
                 <tr key={leave.id} className="border-b border-gray-50">
-                  <td className="p-4 text-sm text-gray-900 font-medium capitalize">{leave.type.replace('_', ' ')}</td>
-                  <td className="p-4 text-sm text-gray-600">{new Date(leave.startDate).toLocaleDateString('fr-FR')}</td>
-                  <td className="p-4 text-sm text-gray-600">{new Date(leave.endDate).toLocaleDateString('fr-FR')}</td>
+                  <td className="p-4 text-sm text-gray-900 font-medium capitalize">{t(`leaves.type.${leave.type}`)}</td>
+                  <td className="p-4 text-sm text-gray-600">{new Date(leave.startDate).toLocaleDateString(lang === 'mg' ? 'mg-MG' : 'fr-FR')}</td>
+                  <td className="p-4 text-sm text-gray-600">{new Date(leave.endDate).toLocaleDateString(lang === 'mg' ? 'mg-MG' : 'fr-FR')}</td>
                   <td className="p-4 text-sm text-gray-600">{leave.reason || '-'}</td>
                   <td className="p-4 text-sm">{getStatusBadge(leave.status)}</td>
                   <td className="p-4 text-sm text-right">
                     {leave.status === 'pending' && (
-                      <button onClick={() => handleDelete(leave.id)} className="text-red-500 hover:text-red-700 transition-colors" title="Annuler la demande">
+                      <button onClick={() => handleDelete(leave.id)} className="text-red-500 hover:text-red-700 transition-colors" title={t('leaves.cancelRequest')}>
                         <Trash2 size={16} />
                       </button>
                     )}
@@ -192,7 +194,7 @@ export default function LeavesPage() {
                 </tr>
               ))}
               {!loading && leaves.length === 0 && (
-                <tr><td colSpan={6} className="p-4 text-center text-gray-500">Aucune demande de congé.</td></tr>
+                <tr><td colSpan={6} className="p-4 text-center text-gray-500">{t('leaves.none')}</td></tr>
               )}
             </tbody>
           </table>
@@ -202,36 +204,36 @@ export default function LeavesPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">Nouvelle demande de congé</h3>
+            <h3 className="text-lg font-bold mb-4">{t('leaves.modalTitle')}</h3>
             {formError && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">{formError}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type de congé</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('leaves.leaveType')}</label>
                 <select required className="w-full border border-gray-300 rounded-lg p-2" value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
-                  <option value="annuel">Congé Annuel</option>
-                  <option value="maladie">Congé Maladie</option>
-                  <option value="maternite">Congé Maternité (14 semaines)</option>
-                  <option value="paternite">Congé Paternité</option>
-                  <option value="sans_solde">Congé Sans Solde</option>
+                  <option value="annuel">{t('leaves.type.annuel')}</option>
+                  <option value="maladie">{t('leaves.type.maladie')}</option>
+                  <option value="maternite">{t('leaves.type.maternite')}</option>
+                  <option value="paternite">{t('leaves.type.paternite')}</option>
+                  <option value="sans_solde">{t('leaves.type.sans_solde')}</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('leaves.startDate')}</label>
                   <input required type="date" className="w-full border border-gray-300 rounded-lg p-2" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('leaves.endDate')}</label>
                   <input required type="date" className="w-full border border-gray-300 rounded-lg p-2" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Motif (optionnel)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('leaves.reasonOptional')}</label>
                 <textarea className="w-full border border-gray-300 rounded-lg p-2" rows={3} value={formData.reason} onChange={e => setFormData({...formData, reason: e.target.value})}></textarea>
               </div>
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">Soumettre</button>
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">{t('common.cancel')}</button>
+                <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">{t('leaves.submit')}</button>
               </div>
             </form>
           </div>
