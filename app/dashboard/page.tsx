@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { Users, CalendarOff, GraduationCap, ClipboardCheck, AlertCircle, UserCircle, Award } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { role, user } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [stats, setStats] = useState({
     employees: 0,
     leaves: 0,
@@ -63,14 +63,13 @@ export default function DashboardPage() {
           // Department distribution
           const depts: Record<string, number> = {};
           employees.forEach(emp => {
-            const d = emp.department || 'Non défini';
+            const d = emp.department || t('dashboard.unknownDepartment');
             depts[d] = (depts[d] || 0) + 1;
           });
           setDeptData(Object.entries(depts).map(([name, value]) => ({ name, value })));
 
           // Absences evolution (last 6 months)
           const now = new Date();
-          const monthsNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
           const absData = [];
           for (let i = 5; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -79,7 +78,10 @@ export default function DashboardPage() {
               const start = new Date(l.startDate);
               return l.status === 'approved_rh' && start.getMonth() === m && start.getFullYear() === d.getFullYear();
             }).length;
-            absData.push({ name: monthsNames[m], absences: count });
+            absData.push({
+              name: d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'mg-MG', { month: 'short' }),
+              absences: count
+            });
           }
           setAbsenceData(absData);
 
@@ -87,7 +89,7 @@ export default function DashboardPage() {
           const newAlerts = [];
           const pendingLeaves = leaves.filter(l => l.status === 'pending').length;
           if (pendingLeaves > 0) {
-            newAlerts.push({ text: `<strong>${pendingLeaves} demandes de congés</strong> en attente de validation.`, type: 'blue' });
+            newAlerts.push({ text: t('dashboard.alert.pendingLeaves').replace('{count}', String(pendingLeaves)), type: 'blue' });
           }
 
           const expiringCDD = employees.filter(emp => {
@@ -97,11 +99,11 @@ export default function DashboardPage() {
             return diff > 0 && diff < 30 * 24 * 60 * 60 * 1000;
           }).length;
           if (expiringCDD > 0) {
-            newAlerts.push({ text: `<strong>${expiringCDD} contrats CDD</strong> expirent dans moins de 30 jours.`, type: 'amber' });
+            newAlerts.push({ text: t('dashboard.alert.expiringCdd').replace('{count}', String(expiringCDD)), type: 'amber' });
           }
 
           if (newAlerts.length === 0) {
-            newAlerts.push({ text: "Aucune alerte urgente pour le moment.", type: 'blue' });
+            newAlerts.push({ text: t('dashboard.alert.noneUrgent'), type: 'blue' });
           }
           setAlerts(newAlerts);
         }
@@ -111,14 +113,14 @@ export default function DashboardPage() {
     };
 
     fetchStats();
-  }, [user, role]);
+  }, [user, role, lang, t]);
 
   if (role === 'employee') {
     return (
       <div className="space-y-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Bonjour, {user?.displayName}</h1>
-          <p className="text-gray-500 mt-1">Bienvenue sur votre espace personnel RISE HR</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.employee.greeting')}, {user?.displayName}</h1>
+          <p className="text-gray-500 mt-1">{t('dashboard.employee.welcome')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -127,8 +129,8 @@ export default function DashboardPage() {
               <UserCircle size={28} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-lg">Mon Dossier RH</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Voir mes infos et fiches de paie</p>
+              <h3 className="font-semibold text-gray-900 text-lg">{t('dashboard.employee.profileTitle')}</h3>
+              <p className="text-sm text-gray-500 mt-0.5">{t('dashboard.employee.profileDesc')}</p>
             </div>
           </Link>
 
@@ -137,8 +139,8 @@ export default function DashboardPage() {
               <CalendarOff size={28} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-lg">Mes Congés</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Solde: <span className="font-medium text-emerald-600">{leaveBalance}</span> jours</p>
+              <h3 className="font-semibold text-gray-900 text-lg">{t('dashboard.employee.leavesTitle')}</h3>
+              <p className="text-sm text-gray-500 mt-0.5">{t('dashboard.employee.leaveBalanceLabel')}: <span className="font-medium text-emerald-600">{leaveBalance}</span> {t('leaves.days')}</p>
             </div>
           </Link>
 
@@ -147,8 +149,8 @@ export default function DashboardPage() {
               <Award size={28} />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-lg">Mon Intégration</h3>
-              <p className="text-sm text-gray-500 mt-0.5">Voir mes tâches d&apos;accueil</p>
+              <h3 className="font-semibold text-gray-900 text-lg">{t('dashboard.employee.onboardingTitle')}</h3>
+              <p className="text-sm text-gray-500 mt-0.5">{t('dashboard.employee.onboardingDesc')}</p>
             </div>
           </Link>
         </div>
@@ -167,7 +169,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('nav.dashboard')}</h1>
-        <p className="text-gray-500 mt-2 text-lg">Vue d&apos;ensemble de vos ressources humaines</p>
+        <p className="text-gray-500 mt-2 text-lg">{t('dashboard.overview')}</p>
       </div>
 
       {/* KPIs */}
@@ -194,7 +196,7 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.03)] border border-gray-100/80 p-7">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
               <CalendarOff size={20} className="text-gray-400" />
-              Évolution des absences
+              {t('dashboard.absenceTrend')}
             </h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -214,7 +216,7 @@ export default function DashboardPage() {
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgb(0,0,0,0.03)] border border-gray-100/80 p-7">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
               <Users size={20} className="text-gray-400" />
-              Répartition par département
+              {t('dashboard.departmentSplit')}
             </h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -265,11 +267,11 @@ export default function DashboardPage() {
                     <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${
                       alert.type === 'amber' ? 'bg-amber-500' : 'bg-blue-500'
                     }`} />
-                    <p dangerouslySetInnerHTML={{ __html: alert.text }} />
+                    <p>{alert.text}</p>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-gray-500 italic">Aucune alerte pour le moment.</p>
+                <p className="text-sm text-gray-500 italic">{t('dashboard.alert.none')}</p>
               )}
             </div>
           </div>
