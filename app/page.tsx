@@ -50,6 +50,14 @@ export default function LoginPage() {
     router.prefetch('/dashboard');
   }, [router]);
 
+  useEffect(() => {
+    const msg = localStorage.getItem('signup_notice');
+    if (msg) {
+      setError(msg);
+      localStorage.removeItem('signup_notice');
+    }
+  }, []);
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
