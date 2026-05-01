@@ -92,10 +92,10 @@ export default function RecruitmentPage() {
         </div>
         <div className="flex gap-3">
           <button onClick={() => setShowCandidateModal(true)} className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-colors">
-            <Plus size={16} /> Candidat
+            <Plus size={16} /> {t('recruit.candidate')}
           </button>
           <button onClick={() => setShowOfferModal(true)} className="bg-[#1B2A4A] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#2A3F6C] transition-colors">
-            <Plus size={16} /> Nouvelle offre
+            <Plus size={16} /> {t('recruit.newOffer')}
           </button>
         </div>
       </div>
@@ -186,17 +186,17 @@ export default function RecruitmentPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">{t('recruit.newOfferModal')}</h3>
             <form onSubmit={handleAddOffer} className="space-y-4">
-              <input required type="text" placeholder="{t('recruit.positionTitle')}" className="w-full border rounded-lg p-2" value={offerForm.title} onChange={e => setOfferForm({...offerForm, title: e.target.value})} />
-              <input required type="text" placeholder="Département" className="w-full border rounded-lg p-2" value={offerForm.department} onChange={e => setOfferForm({...offerForm, department: e.target.value})} />
-              <input required type="text" placeholder="Lieu" className="w-full border rounded-lg p-2" value={offerForm.location} onChange={e => setOfferForm({...offerForm, location: e.target.value})} />
+              <input required type="text" placeholder={t('recruit.positionTitle')} className="w-full border rounded-lg p-2" value={offerForm.title} onChange={e => setOfferForm({...offerForm, title: e.target.value})} />
+              <input required type="text" placeholder={t('recruit.department')} className="w-full border rounded-lg p-2" value={offerForm.department} onChange={e => setOfferForm({...offerForm, department: e.target.value})} />
+              <input required type="text" placeholder={t('recruit.location')} className="w-full border rounded-lg p-2" value={offerForm.location} onChange={e => setOfferForm({...offerForm, location: e.target.value})} />
               <select className="w-full border rounded-lg p-2" value={offerForm.contractType} onChange={e => setOfferForm({...offerForm, contractType: e.target.value})}>
                 <option value="CDI">CDI</option>
                 <option value="CDD">CDD</option>
                 <option value="Stage">Stage</option>
               </select>
-              <textarea placeholder="{t('recruit.description')}" className="w-full border rounded-lg p-2" value={offerForm.description} onChange={e => setOfferForm({...offerForm, description: e.target.value})} />
+              <textarea placeholder={t('recruit.description')} className="w-full border rounded-lg p-2" value={offerForm.description} onChange={e => setOfferForm({...offerForm, description: e.target.value})} />
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowOfferModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+                <button type="button" onClick={() => setShowOfferModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">{t('common.cancel')}</button>
                 <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">{t('recruit.save')}</button>
               </div>
             </form>
@@ -215,12 +215,12 @@ export default function RecruitmentPage() {
                 {offers.map(o => <option key={o.id} value={o.id}>{o.title}</option>)}
               </select>
               <div className="grid grid-cols-2 gap-4">
-                <input required type="text" placeholder="{t('recruit.firstName')}" className="w-full border rounded-lg p-2" value={candidateForm.firstName} onChange={e => setCandidateForm({...candidateForm, firstName: e.target.value})} />
-                <input required type="text" placeholder="{t('recruit.lastName')}" className="w-full border rounded-lg p-2" value={candidateForm.lastName} onChange={e => setCandidateForm({...candidateForm, lastName: e.target.value})} />
+                <input required type="text" placeholder={t('recruit.firstName')} className="w-full border rounded-lg p-2" value={candidateForm.firstName} onChange={e => setCandidateForm({...candidateForm, firstName: e.target.value})} />
+                <input required type="text" placeholder={t('recruit.lastName')} className="w-full border rounded-lg p-2" value={candidateForm.lastName} onChange={e => setCandidateForm({...candidateForm, lastName: e.target.value})} />
               </div>
-              <input required type="email" placeholder="Email" className="w-full border rounded-lg p-2" value={candidateForm.email} onChange={e => setCandidateForm({...candidateForm, email: e.target.value})} />
+              <input required type="email" placeholder={t('login.email')} className="w-full border rounded-lg p-2" value={candidateForm.email} onChange={e => setCandidateForm({...candidateForm, email: e.target.value})} />
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setShowCandidateModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+                <button type="button" onClick={() => setShowCandidateModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">{t('common.cancel')}</button>
                 <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">{t('recruit.save')}</button>
               </div>
             </form>
