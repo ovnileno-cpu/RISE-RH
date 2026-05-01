@@ -172,29 +172,16 @@ export default function TrainingPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center">{t('common.loading')}</td></tr>
-              ) : visibleTrainings.map(training => (
+              ) : trainings.map(training => (
                 <tr key={training.id} className="border-b border-gray-50">
                   <td className="p-4 text-sm text-gray-900 font-medium">{training.title}</td>
                   <td className="p-4 text-sm text-gray-600">{training.department}</td>
                   <td className="p-4 text-sm text-gray-600">{training.hours || 0}h</td>
                   {role !== 'employee' && <td className="p-4 text-sm text-gray-600">{training.budget.toLocaleString()} Ar</td>}
                   <td className="p-4 text-sm text-gray-600">
-                    {role !== 'employee' ? (
-                      <select
-                        value={training.status || 'planned'}
-                        onChange={(e) => handleStatusChange(training.id, e.target.value)}
-                        disabled={updatingId === training.id}
-                        className="border rounded p-1 text-xs"
-                      >
-                        <option value="planned">{t('training.status.planned')}</option>
-                        <option value="active">{t('training.status.active')}</option>
-                        <option value="completed">{t('training.status.completed')}</option>
-                      </select>
-                    ) : (
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${training.status === 'planned' ? 'bg-amber-50 text-amber-700' : training.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                        {training.status === 'planned' ? t('training.status.planned') : training.status === 'active' ? t('training.status.active') : t('training.status.completed')}
-                      </span>
-                    )}
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${training.status === 'planned' ? 'bg-amber-50 text-amber-700' : training.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                      {training.status === 'planned' ? t('training.status.planned') : training.status === 'active' ? t('training.status.active') : t('training.status.completed')}
+                    </span>
                   </td>
                   {role === 'employee' && (
                     <td className="p-4 text-sm text-right">
