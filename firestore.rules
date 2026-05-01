@@ -86,7 +86,6 @@ service cloud.firestore {
     // Validation Functions
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'email', 'role']) &&
-             data.uid == request.auth.uid &&
              data.email is string && data.email.size() <= 100 &&
              data.role in ['admin', 'manager', 'employee'] &&
              (data.get('displayName', '') is string) &&
@@ -95,7 +94,6 @@ service cloud.firestore {
 
     function isValidLeave(data) {
       return data.keys().hasAll(['employeeId', 'type', 'startDate', 'endDate', 'status']) &&
-             data.employeeId == request.auth.uid &&
              data.type in ['annuel', 'maladie', 'maternite', 'paternite', 'sans_solde'] &&
              data.startDate is string && data.endDate is string &&
              data.status in ['pending', 'approved_manager', 'approved_rh', 'rejected'] &&
@@ -117,9 +115,9 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow create: if (isOwner(userId) || isAdmin()) && isValidUser(incoming());
       allow update: if (isOwner(userId) || isAdmin()) && 
-                    (isAdmin() || incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'department']));
+                    (isAdmin() || (incoming().uid == existing().uid && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'department'])));
       allow delete: if isAdmin();
     }
     
