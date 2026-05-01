@@ -15,10 +15,14 @@ export default function EvaluationsPage() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [formData, setFormData] = useState({ employeeId: '', campaign: '', score: 0, comments: '' });
 
   const fetchData = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       let evalQuery = collection(db, 'evaluations') as any;
@@ -46,6 +50,10 @@ export default function EvaluationsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (formData.score < 1 || formData.score > 5) {
+      setNotice({ type: 'error', text: t('eval.notice.invalidScore') });
+      return;
+    }
     try {
       await addDoc(collection(db, 'evaluations'), { 
         ...formData, 
@@ -55,8 +63,10 @@ export default function EvaluationsPage() {
       setShowModal(false);
       setFormData({ employeeId: '', campaign: '', score: 0, comments: '' });
       fetchData();
+      setNotice({ type: 'success', text: t('eval.notice.created') });
     } catch (error) {
       console.error("Error adding evaluation", error);
+      setNotice({ type: 'error', text: t('eval.notice.createError') });
     }
   };
 
@@ -64,22 +74,22 @@ export default function EvaluationsPage() {
     const doc = new jsPDF();
     
     doc.setFontSize(20);
-    doc.text("RISE HR - Rapport d'Évaluation", 105, 20, { align: "center" });
+    doc.text(t('eval.pdf.title'), 105, 20, { align: "center" });
     
     doc.setFontSize(12);
-    doc.text(`Employé: ${emp ? `${emp.firstName} ${emp.lastName}` : t('eval.unknown')}`, 20, 40);
-    doc.text(`Campagne: ${ev.campaign}`, 20, 50);
-    doc.text(`Date: ${new Date(ev.date).toLocaleDateString(lang === 'mg' ? 'mg-MG' : 'fr-FR')}`, 20, 60);
+    doc.text(`${t('eval.table.employee')}: ${emp ? `${emp.firstName} ${emp.lastName}` : t('eval.unknown')}`, 20, 40);
+    doc.text(`${t('eval.table.campaign')}: ${ev.campaign}`, 20, 50);
+    doc.text(`${t('eval.table.date')}: ${new Date(ev.date).toLocaleDateString(lang === 'mg' ? 'mg-MG' : 'fr-FR')}`, 20, 60);
     
     doc.line(20, 65, 190, 65);
     
     doc.setFontSize(14);
-    doc.text(`Score Global: ${ev.score} / 5`, 20, 80);
+    doc.text(`${t('eval.table.score')}: ${ev.score} / 5`, 20, 80);
     
     doc.setFontSize(12);
-    doc.text("{t('eval.comments')}:", 20, 100);
+    doc.text(`${t('eval.comments')}:`, 20, 100);
     
-    const splitComments = doc.splitTextToSize(ev.comments || 'Aucun commentaire.', 170);
+    const splitComments = doc.splitTextToSize(ev.comments || t('eval.noComments'), 170);
     doc.text(splitComments, 20, 110);
     
     doc.save(`Evaluation_${emp?.lastName || t('eval.unknown')}_${ev.campaign}.pdf`);
@@ -98,6 +108,12 @@ export default function EvaluationsPage() {
           </button>
         )}
       </div>
+
+      {notice && (
+        <div className={`rounded-lg p-3 text-sm border ${notice.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+          {notice.text}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('eval.history')}</h3>
@@ -150,9 +166,9 @@ export default function EvaluationsPage() {
                 <option value="">{t('eval.selectEmployee')}</option>
                 {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.firstName} {emp.lastName}</option>)}
               </select>
-              <input required type="text" placeholder="{t('eval.campaignPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.campaign} onChange={e => setFormData({...formData, campaign: e.target.value})} />
-              <input required type="number" min="1" max="5" step="0.1" placeholder="{t('eval.scorePlaceholder')}" className="w-full border rounded-lg p-2" value={formData.score || ''} onChange={e => setFormData({...formData, score: Number(e.target.value)})} />
-              <textarea placeholder="{t('eval.comments')}" className="w-full border rounded-lg p-2" value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} />
+              <input required type="text" placeholder={t('eval.campaignPlaceholder')} className="w-full border rounded-lg p-2" value={formData.campaign} onChange={e => setFormData({...formData, campaign: e.target.value})} />
+              <input required type="number" min="1" max="5" step="0.1" placeholder={t('eval.scorePlaceholder')} className="w-full border rounded-lg p-2" value={formData.score || ''} onChange={e => setFormData({...formData, score: Number(e.target.value)})} />
+              <textarea placeholder={t('eval.comments')} className="w-full border rounded-lg p-2" value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} />
               <div className="flex justify-end gap-3 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">{t('common.cancel')}</button>
                 <button type="submit" className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C]">{t('recruit.save')}</button>

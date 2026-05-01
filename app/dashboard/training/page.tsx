@@ -3,16 +3,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { GraduationCap, BookOpen, Award, Plus } from 'lucide-react';
 import { useI18n } from '@/lib/i18n';
 
 export default function TrainingPage() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const { t } = useI18n();
   const [trainings, setTrainings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [formData, setFormData] = useState({ title: '', department: '', budget: 0, hours: 0, status: 'planned' });
 
   const fetchTrainings = useCallback(async () => {
@@ -42,8 +45,46 @@ export default function TrainingPage() {
       setShowModal(false);
       setFormData({ title: '', department: '', budget: 0, hours: 0, status: 'planned' });
       fetchTrainings();
+      setNotice({ type: 'success', text: t('training.notice.created') });
     } catch (error) {
       console.error("Error adding training", error);
+      setNotice({ type: 'error', text: t('training.notice.createError') });
+    }
+  };
+
+  const visibleTrainings = onlyMine && user
+    ? trainings.filter(training => (training.participants || []).includes(user.uid))
+    : trainings;
+
+  const handleToggleEnrollment = async (training: any) => {
+    if (!user) return;
+    setUpdatingId(training.id);
+    try {
+      const enrolled = (training.participants || []).includes(user.uid);
+      await updateDoc(doc(db, 'trainings', training.id), {
+        participants: enrolled ? arrayRemove(user.uid) : arrayUnion(user.uid)
+      });
+      fetchTrainings();
+      setNotice({ type: 'success', text: enrolled ? t('training.notice.left') : t('training.notice.joined') });
+    } catch (error) {
+      console.error('Error updating enrollment', error);
+      setNotice({ type: 'error', text: t('training.notice.updateError') });
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleStatusChange = async (trainingId: string, status: string) => {
+    setUpdatingId(trainingId);
+    try {
+      await updateDoc(doc(db, 'trainings', trainingId), { status });
+      fetchTrainings();
+      setNotice({ type: 'success', text: t('training.notice.statusUpdated') });
+    } catch (error) {
+      console.error('Error updating status', error);
+      setNotice({ type: 'error', text: t('training.notice.updateError') });
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -61,6 +102,12 @@ export default function TrainingPage() {
         )}
       </div>
 
+      {notice && (
+        <div className={`rounded-lg p-3 text-sm border ${notice.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
+          {notice.text}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-4 mb-4">
@@ -72,7 +119,7 @@ export default function TrainingPage() {
               <p className="text-sm text-gray-500">{t('training.available').replace('{count}', String(trainings.length))}</p>
             </div>
           </div>
-          <button className="w-full py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+          <button className="w-full py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors" onClick={() => setOnlyMine(false)}>
             {t('training.browse')}
           </button>
         </div>
@@ -87,7 +134,7 @@ export default function TrainingPage() {
               <p className="text-sm text-gray-500">{t('training.inProgressCount')}</p>
             </div>
           </div>
-          <button className="w-full py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
+          <button className="w-full py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors" onClick={() => setOnlyMine(prev => !prev)}>
             {t('training.viewTracking')}
           </button>
         </div>
@@ -119,26 +166,51 @@ export default function TrainingPage() {
                 <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.duration')}</th>
                 {role !== 'employee' && <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.budget')}</th>}
                 <th className="p-4 text-sm font-medium text-gray-500">{t('training.table.status')}</th>
+                {role === 'employee' && <th className="p-4 text-sm font-medium text-gray-500 text-right">{t('training.table.actions')}</th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center">{t('common.loading')}</td></tr>
-              ) : trainings.map(t => (
-                <tr key={t.id} className="border-b border-gray-50">
-                  <td className="p-4 text-sm text-gray-900 font-medium">{t.title}</td>
-                  <td className="p-4 text-sm text-gray-600">{t.department}</td>
-                  <td className="p-4 text-sm text-gray-600">{t.hours || 0}h</td>
-                  {role !== 'employee' && <td className="p-4 text-sm text-gray-600">{t.budget.toLocaleString()} Ar</td>}
+              ) : visibleTrainings.map(training => (
+                <tr key={training.id} className="border-b border-gray-50">
+                  <td className="p-4 text-sm text-gray-900 font-medium">{training.title}</td>
+                  <td className="p-4 text-sm text-gray-600">{training.department}</td>
+                  <td className="p-4 text-sm text-gray-600">{training.hours || 0}h</td>
+                  {role !== 'employee' && <td className="p-4 text-sm text-gray-600">{training.budget.toLocaleString()} Ar</td>}
                   <td className="p-4 text-sm text-gray-600">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${t.status === 'planned' ? 'bg-amber-50 text-amber-700' : t.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                      {t.status === 'planned' ? t('training.status.planned') : t.status === 'active' ? t('training.status.active') : t('training.status.completed')}
-                    </span>
+                    {role !== 'employee' ? (
+                      <select
+                        value={training.status || 'planned'}
+                        onChange={(e) => handleStatusChange(training.id, e.target.value)}
+                        disabled={updatingId === training.id}
+                        className="border rounded p-1 text-xs"
+                      >
+                        <option value="planned">{t('training.status.planned')}</option>
+                        <option value="active">{t('training.status.active')}</option>
+                        <option value="completed">{t('training.status.completed')}</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${training.status === 'planned' ? 'bg-amber-50 text-amber-700' : training.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                        {training.status === 'planned' ? t('training.status.planned') : training.status === 'active' ? t('training.status.active') : t('training.status.completed')}
+                      </span>
+                    )}
                   </td>
+                  {role === 'employee' && (
+                    <td className="p-4 text-sm text-right">
+                      <button
+                        onClick={() => handleToggleEnrollment(training)}
+                        disabled={updatingId === training.id}
+                        className="px-3 py-1 rounded-lg border text-xs hover:bg-gray-50 disabled:opacity-60"
+                      >
+                        {(training.participants || []).includes(user?.uid) ? t('training.leave') : t('training.join')}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
-              {!loading && trainings.length === 0 && (
-                <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center text-gray-500">{t('training.none')}</td></tr>
+              {!loading && visibleTrainings.length === 0 && (
+                <tr><td colSpan={role !== 'employee' ? 5 : 5} className="p-4 text-center text-gray-500">{t('training.none')}</td></tr>
               )}
             </tbody>
           </table>
@@ -150,11 +222,11 @@ export default function TrainingPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">{t('training.new')}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input required type="text" placeholder="{t('training.titlePlaceholder')}" className="w-full border rounded-lg p-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-              <input required type="text" placeholder="{t('training.departmentPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
+              <input required type="text" placeholder={t('training.titlePlaceholder')} className="w-full border rounded-lg p-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+              <input required type="text" placeholder={t('training.departmentPlaceholder')} className="w-full border rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
               <div className="grid grid-cols-2 gap-4">
-                <input required type="number" placeholder="{t('training.budgetPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} />
-                <input required type="number" placeholder="{t('training.hoursPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.hours || ''} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} />
+                <input required type="number" placeholder={t('training.budgetPlaceholder')} className="w-full border rounded-lg p-2" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} />
+                <input required type="number" placeholder={t('training.hoursPlaceholder')} className="w-full border rounded-lg p-2" value={formData.hours || ''} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} />
               </div>
               <select className="w-full border rounded-lg p-2" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
                 <option value="planned">{t('training.status.planned')}</option>

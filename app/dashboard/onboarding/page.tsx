@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
+import { useI18n } from '@/lib/i18n';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { 
@@ -237,6 +238,7 @@ const TUTORIALS: Tutorial[] = [
 ];
 
 export default function OnboardingPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [completedTutorials, setCompletedTutorials] = useState<string[]>([]);
   const [activeTutorial, setActiveTutorial] = useState<Tutorial | null>(null);
@@ -323,7 +325,7 @@ export default function OnboardingPage() {
               <div className="bg-blue-600 text-white p-2 rounded-lg"><Monitor size={18} /></div>
               <div>
                 <h4 className="text-sm font-bold text-gray-900">RISE RH - Simulation Interactive</h4>
-                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest">Connecté en mode Apprentissage</p>
+                <p className="text-[10px] text-gray-400 font-mono uppercase tracking-widest">{t('onboarding.sim.learningMode')}</p>
               </div>
             </div>
             <button onClick={() => setActiveTutorial(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400"><Trash2 size={20} /></button>
@@ -500,7 +502,7 @@ export default function OnboardingPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                        <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-600">Étape {currentStep+1}</h5>
+                        <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-600">{t('onboarding.sim.step')} {currentStep+1}</h5>
                       </div>
                       <h4 className="font-bold text-gray-900 text-xl leading-tight">{step.title}</h4>
                     </div>
@@ -512,7 +514,7 @@ export default function OnboardingPage() {
                     onClick={nextStep}
                     className="w-full bg-blue-600 text-white py-4.5 rounded-[1.25rem] font-black text-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-[0_12px_24px_-8px_rgba(37,99,235,0.4)] active:scale-[0.97]"
                   >
-                    {currentStep === activeTutorial.steps.length - 1 ? 'Terminé !' : 'J\'ai compris'} <ArrowRight size={20} />
+                    {currentStep === activeTutorial.steps.length - 1 ? t('onboarding.sim.done') : t('onboarding.sim.understood')} <ArrowRight size={20} />
                   </button>
                 </div>
               </motion.div>
@@ -521,7 +523,7 @@ export default function OnboardingPage() {
 
           {/* Footer of modal */}
           <div className="bg-white border-t border-gray-100 p-5 px-10 flex justify-between items-center shrink-0">
-            <p className="text-xs text-gray-400">Interaction simulée - Toute action effectuée ici n&apos;aura aucun impact sur vos données réelles.</p>
+            <p className="text-xs text-gray-400">{t('onboarding.sim.disclaimer')}</p>
             <div className="flex gap-2">
               {activeTutorial.steps.map((_, i) => (
                 <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentStep ? 'w-6 bg-blue-600' : 'w-1.5 bg-gray-200'}`} />
@@ -539,18 +541,18 @@ export default function OnboardingPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold mb-3 border border-blue-100 uppercase tracking-wider">
-            <GraduationCap size={14} /> Centre de Formation RISE
+            <GraduationCap size={14} /> {t('onboarding.header.center')}
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Espace Intégration</h1>
-          <p className="text-gray-500 mt-1 text-lg">Maîtrisez RISE RH en quelques minutes grâce à nos guides pratiques.</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t('onboarding.header.title')}</h1>
+          <p className="text-gray-500 mt-1 text-lg">{t('onboarding.header.subtitle')}</p>
         </div>
         <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
           <div className="p-2 bg-emerald-50 rounded-lg">
             <Award className="text-emerald-600" size={20} />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium font-mono uppercase">Statut</p>
-            <p className="text-sm font-bold text-gray-900">{completedTutorials.length} / {TUTORIALS.length} terminés</p>
+            <p className="text-xs text-gray-500 font-medium font-mono uppercase">{t('onboarding.status.label')}</p>
+            <p className="text-sm font-bold text-gray-900">{completedTutorials.length} / {TUTORIALS.length} {t('onboarding.status.completed')}</p>
           </div>
         </div>
       </div>
@@ -577,14 +579,14 @@ export default function OnboardingPage() {
                 )}
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{tutorial.title}</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t(`onboarding.tutorial.${tutorial.id}.title`)}</h3>
               <p className="text-gray-500 text-sm mb-6 flex-grow leading-relaxed">
-                {tutorial.description}
+                {t(`onboarding.tutorial.${tutorial.id}.description`)}
               </p>
               
               <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-50">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <BookOpen size={14} /> {tutorial.steps.length} étapes
+                  <BookOpen size={14} /> {tutorial.steps.length} {t('onboarding.status.steps')}
                 </span>
                 <button 
                   onClick={() => startTutorial(tutorial)}
@@ -594,7 +596,7 @@ export default function OnboardingPage() {
                       : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
                   }`}
                 >
-                  {isCompleted ? 'Revoir' : 'Commencer'} <Play size={14} fill="currentColor" />
+                  {isCompleted ? t('onboarding.actions.review') : t('onboarding.actions.start')} <Play size={14} fill="currentColor" />
                 </button>
               </div>
             </motion.div>
@@ -615,12 +617,12 @@ export default function OnboardingPage() {
             <div className="inline-flex p-3 bg-white/20 rounded-2xl mb-6 backdrop-blur-sm">
               <Award size={48} />
             </div>
-            <h2 className="text-3xl font-extrabold mb-4">Félicitations Expert RISE !</h2>
+            <h2 className="text-3xl font-extrabold mb-4">{t('onboarding.banner.title')}</h2>
             <p className="text-blue-100 text-lg mb-8 max-w-xl mx-auto">
-              Vous avez terminé tous les modules d&apos;intégration. Vous êtes maintenant prêt à profiter pleinement de RISE HR.
+              {t('onboarding.banner.subtitle')}
             </p>
             <button className="bg-white text-blue-700 px-8 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors">
-              Découvrir mon espace perso
+              {t('onboarding.banner.cta')}
             </button>
           </div>
         </motion.div>
@@ -632,12 +634,11 @@ export default function OnboardingPage() {
             <ArrowRight size={20} />
           </div>
           <div>
-            <h4 className="font-bold text-amber-900">Conseil : Commencez par l&apos;introduction</h4>
-            <p className="text-amber-800 text-sm">Nous vous recommandons de suivre le tutoriel &quot;Découvrir RISE RH&quot; avant d&apos;explorer les autres modules.</p>
+            <h4 className="font-bold text-amber-900">{t('onboarding.tip.title')}</h4>
+            <p className="text-amber-800 text-sm">{t('onboarding.tip.subtitle')}</p>
           </div>
         </div>
       )}
     </div>
   );
 }
-

@@ -149,11 +149,11 @@ export default function EmployeesTab() {
 
         // 4. Create default onboarding tasks
         const defaultTasks = [
-          { title: 'Compléter mon profil', description: 'Ajouter une photo de profil et vérifier mes informations personnelles.', category: 'setup' },
-          { title: 'Lire le manuel de l\'entreprise', description: 'Prendre connaissance du règlement intérieur et des valeurs de RISE HR.', category: 'reading' },
-          { title: 'Configuration du matériel informatique', description: 'Configurer l\'ordinateur, les accès emails et les logiciels métiers.', category: 'setup' },
-          { title: 'Formation sécurité obligatoire', description: 'Suivre le module de sensibilisation à la sécurité informatique.', category: 'training' },
-          { title: 'Rencontre avec le manager', description: 'Planifier un point de 30 minutes avec le responsable direct.', category: 'meeting' }
+          { title: t('employees.tasks.profileTitle'), description: t('employees.tasks.profileDesc'), category: 'setup' },
+          { title: t('employees.tasks.handbookTitle'), description: t('employees.tasks.handbookDesc'), category: 'reading' },
+          { title: t('employees.tasks.itSetupTitle'), description: t('employees.tasks.itSetupDesc'), category: 'setup' },
+          { title: t('employees.tasks.securityTitle'), description: t('employees.tasks.securityDesc'), category: 'training' },
+          { title: t('employees.tasks.managerTitle'), description: t('employees.tasks.managerDesc'), category: 'meeting' }
         ];
 
         for (const task of defaultTasks) {
@@ -177,15 +177,15 @@ export default function EmployeesTab() {
     } catch (error: any) {
       console.error("Error saving employee", error);
       if (error.code === 'auth/operation-not-allowed') {
-        setFormError("L'authentification par Email/Mot de passe n'est pas activée. Veuillez l'activer dans la console Firebase (Authentication > Sign-in method).");
+        setFormError(t('employees.errors.authNotEnabled'));
       } else if (error.code === 'auth/email-already-in-use') {
-        setFormError("Cet e-mail est déjà utilisé par un autre compte.");
+        setFormError(t('employees.errors.emailInUse'));
       } else if (error.code === 'auth/invalid-email') {
-        setFormError("L'adresse e-mail n'est pas valide.");
+        setFormError(t('employees.errors.invalidEmail'));
       } else if (error.code === 'auth/weak-password') {
-        setFormError("Le mot de passe est trop faible.");
+        setFormError(t('employees.errors.weakPassword'));
       } else {
-        setFormError(error.message || "Une erreur est survenue lors de l'enregistrement.");
+        setFormError(error.message || t('employees.errors.saveFailed'));
       }
     } finally {
       setIsSubmitting(false);
@@ -202,12 +202,12 @@ export default function EmployeesTab() {
     }
   };
 
-  if (loading) return <div>Chargement...</div>;
+  if (loading) return <div>{t('common.loading')}</div>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Liste des employés</h2>
+        <h2 className="text-lg font-semibold text-gray-900">{t('employees.title')}</h2>
         <button 
           onClick={handleAddClick}
           className="bg-[#1B2A4A] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[#2A3F6C] transition-colors"
@@ -221,12 +221,12 @@ export default function EmployeesTab() {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="p-4 text-sm font-medium text-gray-500">Nom complet</th>
-              <th className="p-4 text-sm font-medium text-gray-500">Département</th>
-              <th className="p-4 text-sm font-medium text-gray-500">Poste</th>
-              <th className="p-4 text-sm font-medium text-gray-500">Contrat</th>
-              <th className="p-4 text-sm font-medium text-gray-500">Statut</th>
-              <th className="p-4 text-sm font-medium text-gray-500 text-right">Actions</th>
+              <th className="p-4 text-sm font-medium text-gray-500">{t('employees.table.fullName')}</th>
+              <th className="p-4 text-sm font-medium text-gray-500">{t('employees.table.department')}</th>
+              <th className="p-4 text-sm font-medium text-gray-500">{t('employees.table.position')}</th>
+              <th className="p-4 text-sm font-medium text-gray-500">{t('employees.table.contract')}</th>
+              <th className="p-4 text-sm font-medium text-gray-500">{t('employees.table.status')}</th>
+              <th className="p-4 text-sm font-medium text-gray-500 text-right">{t('employees.table.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -236,8 +236,8 @@ export default function EmployeesTab() {
                   {emp.firstName} {emp.lastName}
                   {/* Tooltip */}
                   <div className="absolute left-4 top-10 hidden group-hover:block z-10 bg-gray-900 text-white text-xs rounded py-1 px-2 shadow-lg whitespace-nowrap">
-                    <p>Email: {emp.email || 'Non renseigné'}</p>
-                    <p>Tél: {emp.phone || 'Non renseigné'}</p>
+                    <p>{t('login.email')}: {emp.email || t('profile.notProvided')}</p>
+                    <p>{t('profile.phone')}: {emp.phone || t('profile.notProvided')}</p>
                   </div>
                 </td>
                 <td className="p-4 text-sm text-gray-600">{emp.department}</td>
@@ -247,7 +247,7 @@ export default function EmployeesTab() {
                 </td>
                 <td className="p-4 text-sm text-gray-600">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${emp.status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
-                    {emp.status}
+                    {emp.status === 'active' ? t('employees.status.active') : t('employees.status.inactive')}
                   </span>
                 </td>
                 <td className="p-4 text-sm text-right space-x-2">
@@ -258,7 +258,7 @@ export default function EmployeesTab() {
             ))}
             {employees.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500">Aucun employé trouvé.</td>
+                <td colSpan={6} className="p-8 text-center text-gray-500">{t('employees.none')}</td>
               </tr>
             )}
           </tbody>
@@ -268,16 +268,16 @@ export default function EmployeesTab() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold mb-4">{editingId ? 'Modifier un employé' : 'Ajouter un employé'}</h3>
+                    <h3 className="text-lg font-bold mb-4">{editingId ? t('employees.modal.edit') : t('employees.modal.add')}</h3>
             {formError && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">{formError}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('recruit.firstName')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('recruit.lastName')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
                 </div>
               </div>
@@ -285,11 +285,11 @@ export default function EmployeesTab() {
               {!editingId && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email de connexion</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('employees.form.loginEmail')}</label>
                     <input required type="email" className="w-full border border-gray-300 rounded-lg p-2" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe provisoire</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('employees.form.tempPassword')}</label>
                     <input required type="text" minLength={6} className="w-full border border-gray-300 rounded-lg p-2" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
                   </div>
                 </div>
@@ -297,31 +297,31 @@ export default function EmployeesTab() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">CIN</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('employees.form.cin')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.cin} onChange={e => setFormData({...formData, cin: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.phone')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('profile.address')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Département</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('recruit.department')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Poste</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('employees.form.position')}</label>
                   <input required type="text" className="w-full border border-gray-300 rounded-lg p-2" value={formData.position} onChange={e => setFormData({...formData, position: e.target.value})} />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contrat</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('recruit.contract')}</label>
                   <select className="w-full border border-gray-300 rounded-lg p-2" value={formData.contractType} onChange={e => setFormData({...formData, contractType: e.target.value})}>
                     <option value="CDI">CDI</option>
                     <option value="CDD">CDD</option>
@@ -329,17 +329,17 @@ export default function EmployeesTab() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Salaire de base (Ar)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('employees.form.baseSalary')}</label>
                   <input required type="number" className="w-full border border-gray-300 rounded-lg p-2" value={formData.baseSalary} onChange={e => setFormData({...formData, baseSalary: Number(e.target.value)})} />
                 </div>
               </div>
               {editingId && (
                 <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('employees.table.status')}</label>
                     <select className="w-full border border-gray-300 rounded-lg p-2" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
-                      <option value="active">Actif</option>
-                      <option value="inactive">Inactif</option>
+                      <option value="active">{t('employees.status.active')}</option>
+                      <option value="inactive">{t('employees.status.inactive')}</option>
                     </select>
                   </div>
                 </div>
@@ -347,7 +347,7 @@ export default function EmployeesTab() {
               <div className="flex justify-end gap-3 mt-6">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">{t('common.cancel')}</button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-[#1B2A4A] text-white rounded-lg hover:bg-[#2A3F6C] disabled:opacity-70">
-                  {isSubmitting ? 'Enregistrement...' : t('common.save')}
+                  {isSubmitting ? t('employees.saving') : t('common.save')}
                 </button>
               </div>
             </form>
@@ -358,22 +358,22 @@ export default function EmployeesTab() {
       {employeeToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold mb-2 text-gray-900">Confirmer la suppression</h3>
+            <h3 className="text-lg font-bold mb-2 text-gray-900">{t('employees.deleteTitle')}</h3>
             <p className="text-gray-600 mb-6">
-              Êtes-vous sûr de vouloir supprimer l&apos;employé <strong>{employeeToDelete.firstName} {employeeToDelete.lastName}</strong> ? Cette action est irréversible.
+              {t('employees.deleteConfirm').replace('{name}', `${employeeToDelete.firstName} ${employeeToDelete.lastName}`)}
             </p>
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setEmployeeToDelete(null)} 
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
+                {t('common.cancel')}
               </button>
               <button 
                 onClick={() => confirmDelete(employeeToDelete.id)} 
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                Supprimer
+                {t('common.delete')}
               </button>
             </div>
           </div>
