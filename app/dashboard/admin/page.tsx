@@ -14,15 +14,12 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<'employees' | 'payroll' | 'signups'>('employees');
   const [requests, setRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
-  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
 
   const fetchRequests = async () => {
     setLoadingRequests(true);
     try {
       const snap = await getDocs(collection(db, 'signupRequests'));
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'pending');
-      setRequests(data);
-      setSelectedRoles(Object.fromEntries(data.map((r: any) => [r.id, 'employee'])));
+      setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter((r: any) => r.status === 'pending'));
     } finally {
       setLoadingRequests(false);
     }
@@ -107,16 +104,12 @@ export default function AdminPage() {
                     <p className="text-sm text-gray-500">{req.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <select
-                      value={selectedRoles[req.id] || 'employee'}
-                      onChange={(e) => setSelectedRoles(prev => ({ ...prev, [req.id]: e.target.value }))}
-                      className="border rounded px-2 py-1 text-sm"
-                    >
+                    <select defaultValue="employee" id={`role-${req.id}`} className="border rounded px-2 py-1 text-sm">
                       <option value="employee">{t('admin.role.employee')}</option>
                       <option value="manager">{t('admin.role.manager')}</option>
                       <option value="admin">{t('admin.role.admin')}</option>
                     </select>
-                    <button onClick={() => approveRequest(req, selectedRoles[req.id] || 'employee')} className="px-3 py-1 bg-emerald-600 text-white rounded text-sm">{t('admin.approve')}</button>
+                    <button onClick={() => approveRequest(req, (document.getElementById(`role-${req.id}`) as HTMLSelectElement)?.value || 'employee')} className="px-3 py-1 bg-emerald-600 text-white rounded text-sm">{t('admin.approve')}</button>
                     <button onClick={() => rejectRequest(req)} className="px-3 py-1 bg-red-600 text-white rounded text-sm">{t('admin.reject')}</button>
                   </div>
                 </div>

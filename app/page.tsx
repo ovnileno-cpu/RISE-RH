@@ -235,7 +235,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleSignup}
           disabled={isSigningUp}
-          className="w-full mt-3 bg-emerald-600 border border-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors disabled:opacity-70 shadow-sm"
+          className="w-full mt-3 bg-[#1B2A4A] border border-[#1B2A4A] hover:bg-[#2A3F6C] text-white font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-70"
         >
           {isSigningUp ? t('auth.loginInProgress') : t('signup.button')}
         </button>
