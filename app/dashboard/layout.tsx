@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
@@ -24,30 +24,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, role, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { t, lang, setLang } = useI18n();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/');
+      router.replace('/');
     }
   }, [user, loading, router]);
 
-  if (loading || !user) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Chargement...</div>;
-  }
-
-  const navItems = [
+  const navItems = useMemo(() => [
     { href: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'manager', 'employee'] },
-    { href: '/dashboard/profile', icon: UserCircle, label: 'Mon Dossier RH', roles: ['admin', 'manager', 'employee'] },
-    { href: '/dashboard/onboarding', icon: Award, label: 'Intégration', roles: ['admin', 'manager', 'employee'] },
-    { href: '/dashboard/leaves', icon: CalendarOff, label: 'Mes Congés', roles: ['manager', 'employee'] },
-    { href: '/dashboard/leave-management', icon: CalendarOff, label: 'Congés & Absences', roles: ['admin', 'manager'] },
+    { href: '/dashboard/profile', icon: UserCircle, label: t('nav.profile'), roles: ['admin', 'manager', 'employee'] },
+    { href: '/dashboard/onboarding', icon: Award, label: t('nav.onboarding'), roles: ['admin', 'manager', 'employee'] },
+    { href: '/dashboard/leaves', icon: CalendarOff, label: t('nav.myLeaves'), roles: ['manager', 'employee'] },
+    { href: '/dashboard/leave-management', icon: CalendarOff, label: t('nav.leaveManagement'), roles: ['admin', 'manager'] },
     { href: '/dashboard/admin', icon: Users, label: t('nav.admin'), roles: ['admin', 'manager'] },
     { href: '/dashboard/recruitment', icon: Briefcase, label: t('nav.recruitment'), roles: ['admin', 'manager'] },
     { href: '/dashboard/training', icon: GraduationCap, label: t('nav.training'), roles: ['admin', 'manager', 'employee'] },
     { href: '/dashboard/evaluations', icon: ClipboardCheck, label: t('nav.evaluation'), roles: ['admin', 'manager', 'employee'] },
-  ];
+  ], [t]);
 
+
+  if (loading || !user) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50">{t('common.loading')}</div>;
+  }
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }`}
           >
             <Settings size={20} className={pathname === '/dashboard/settings' ? "text-blue-500" : "text-gray-400 group-hover:text-gray-300"} />
-            <span className="text-sm tracking-wide">Paramètres</span>
+            <span className="text-sm tracking-wide">{t('nav.settings')}</span>
           </Link>
 
           <button

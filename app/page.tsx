@@ -38,9 +38,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    router.prefetch('/dashboard');
+  }, [router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +54,7 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
       console.error(err);
-      setError('Email ou mot de passe incorrect.');
+      setError(t('auth.invalidCredentials'));
     } finally {
       setIsLoggingIn(false);
     }
@@ -62,17 +66,17 @@ export default function LoginPage() {
       await signInWithGoogle();
     } catch (err: any) {
       if (err.code === 'auth/popup-blocked') {
-        setError("La fenêtre Google a été bloquée par votre navigateur. Autorisez les popups ou ouvrez l'application dans un nouvel onglet.");
+        setError(t('auth.popupBlocked'));
       } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
-        setError("La connexion a été annulée. Veuillez réessayer si vous souhaitez vous connecter avec Google.");
+        setError(t('auth.popupCancelled'));
       } else {
-        setError("Une erreur est survenue lors de la connexion. Veuillez vérifier votre connexion internet.");
+        setError(t('auth.genericError'));
       }
     }
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50">Chargement...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50">{t('common.loading')}</div>;
   }
 
   return (
@@ -149,7 +153,7 @@ export default function LoginPage() {
             disabled={isLoggingIn}
             className="w-full bg-[#1B2A4A] hover:bg-[#2A3F6C] text-white font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-70"
           >
-            {isLoggingIn ? 'Connexion...' : 'Se connecter'}
+            {isLoggingIn ? t('auth.loginInProgress') : t('auth.login')}
           </button>
         </form>
 
@@ -158,7 +162,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Ou</span>
+            <span className="px-2 bg-white text-gray-500">{t('auth.or')}</span>
           </div>
         </div>
 

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
 type Language = 'fr' | 'mg';
 
-const translations = {
+export const translations = {
   fr: {
     'app.title': 'RISE HR',
     'app.subtitle': 'Elevating Human Resources in Madagascar',
@@ -37,7 +37,177 @@ const translations = {
     'common.save': 'Enregistrer',
     'common.cancel': 'Annuler',
     'common.delete': 'Supprimer',
-    'common.add': 'Ajouter'
+    'common.add': 'Ajouter',
+    'common.loading': 'Chargement...',
+    'nav.profile': 'Mon dossier RH',
+    'nav.onboarding': 'Intégration',
+    'nav.myLeaves': 'Mes congés',
+    'nav.leaveManagement': 'Congés & absences',
+    'nav.settings': 'Paramètres',
+    'auth.login': 'Se connecter',
+    'auth.or': 'Ou',
+    'auth.invalidCredentials': 'Email ou mot de passe incorrect.',
+    'auth.loginInProgress': 'Connexion...',
+    'auth.popupBlocked': 'La fenêtre Google a été bloquée par votre navigateur. Autorisez les popups ou ouvrez l\'application dans un nouvel onglet.',
+    'auth.popupCancelled': 'La connexion a été annulée. Veuillez réessayer si vous souhaitez vous connecter avec Google.',
+    'auth.genericError': 'Une erreur est survenue lors de la connexion. Veuillez vérifier votre connexion internet.',
+
+    'settings.title': 'Paramètres du compte',
+    'settings.subtitle': 'Gérez vos préférences et la sécurité de votre compte',
+    'settings.preferences': 'Préférences',
+    'settings.preferencesDesc': 'Modifier la langue de l\'application',
+    'settings.language': 'Langue',
+    'settings.security': 'Sécurité',
+    'settings.securityDesc': 'Modifier votre mot de passe',
+    'settings.currentPassword': 'Mot de passe actuel',
+    'settings.newPassword': 'Nouveau mot de passe',
+    'settings.confirmPassword': 'Confirmer le nouveau mot de passe',
+    'settings.updatePassword': 'Mettre à jour le mot de passe',
+    'settings.updating': 'Mise à jour...',
+    'settings.passwordMismatch': 'Les nouveaux mots de passe ne correspondent pas.',
+    'settings.passwordTooShort': 'Le mot de passe doit contenir au moins 6 caractères.',
+    'settings.passwordUpdated': 'Mot de passe mis à jour avec succès.',
+    'settings.currentPasswordInvalid': 'Le mot de passe actuel est incorrect.',
+    'settings.passwordUpdateError': 'Une erreur est survenue lors de la mise à jour du mot de passe.',
+
+    'leaves.title': 'Congés & Absences',
+    'leaves.subtitle': 'Gérez vos demandes de congés et consultez votre solde',
+    'leaves.newRequest': 'Nouvelle demande',
+    'leaves.balancePaid': 'Solde Congés Payés',
+    'leaves.days': 'jours',
+    'leaves.earnedRate': 'Acquis: 2.5 jours / mois',
+    'leaves.history': 'Historique de mes demandes',
+    'leaves.table.type': 'Type',
+    'leaves.table.from': 'Du',
+    'leaves.table.to': 'Au',
+    'leaves.table.reason': 'Motif',
+    'leaves.table.status': 'Statut',
+    'leaves.table.actions': 'Actions',
+    'leaves.cancelRequest': 'Annuler la demande',
+    'leaves.none': 'Aucune demande de congé.',
+    'leaves.modalTitle': 'Nouvelle demande de congé',
+    'leaves.leaveType': 'Type de congé',
+    'leaves.startDate': 'Date de début',
+    'leaves.endDate': 'Date de fin',
+    'leaves.reasonOptional': 'Motif (optionnel)',
+    'leaves.submit': 'Soumettre',
+    'leaves.confirmDelete': 'Êtes-vous sûr de vouloir annuler cette demande de congé ?',
+    'leaves.error.endBeforeStart': 'La date de fin ne peut pas être antérieure à la date de début.',
+    'leaves.error.submit': 'Une erreur est survenue lors de la soumission.',
+    'leaves.error.insufficient': 'Solde insuffisant. Vous demandez {requested} jours mais votre solde est de {balance} jours.',
+    'leaves.status.pending': 'En attente',
+    'leaves.status.approvedManager': 'Validé Manager',
+    'leaves.status.approvedRh': 'Approuvé RH',
+    'leaves.status.rejected': 'Refusé',
+    'leaves.type.annuel': 'Congé Annuel',
+    'leaves.type.maladie': 'Congé Maladie',
+    'leaves.type.maternite': 'Congé Maternité (14 semaines)',
+    'leaves.type.paternite': 'Congé Paternité',
+    'leaves.type.sans_solde': 'Congé Sans Solde',
+
+    'leaveManagement.title': 'Gestion des congés',
+    'leaveManagement.subtitle': 'Gérez les demandes de congés de l\'équipe',
+    'leaveManagement.table.employee': 'Employé',
+    'leaveManagement.table.type': 'Type',
+    'leaveManagement.table.from': 'Du',
+    'leaveManagement.table.to': 'Au',
+    'leaveManagement.table.status': 'Statut',
+    'leaveManagement.table.actions': 'Actions',
+    'leaveManagement.unknown': 'Inconnu',
+    'leaveManagement.approveManager': 'Valider (Manager)',
+    'leaveManagement.approveHr': 'Approuver (RH)',
+    'leaveManagement.reject': 'Refuser',
+
+    'recruit.title': 'Recrutement',
+    'recruit.subtitle': 'Gestion des offres et suivi des candidatures',
+    'recruit.candidate': 'Candidat',
+    'recruit.newOffer': 'Nouvelle offre',
+    'recruit.tab.offers': 'Offres d\'emploi',
+    'recruit.tab.pipeline': 'Pipeline Candidats',
+    'recruit.department': 'Département',
+    'recruit.location': 'Lieu',
+    'recruit.contract': 'Contrat',
+    'recruit.candidates': 'Candidats',
+    'recruit.viewPipeline': 'Voir pipeline',
+    'recruit.noneOffers': 'Aucune offre d\'emploi.',
+    'recruit.spontaneous': 'Candidature spontanée',
+    'recruit.newOfferModal': 'Nouvelle offre d\'emploi',
+    'recruit.positionTitle': 'Titre du poste',
+    'recruit.description': 'Description',
+    'recruit.save': 'Enregistrer',
+    'recruit.newCandidate': 'Nouveau candidat',
+    'recruit.selectOffer': 'Sélectionner une offre...',
+    'recruit.firstName': 'Prénom',
+    'recruit.lastName': 'Nom',
+    'recruit.status.received': 'Reçu',
+    'recruit.status.shortlisted': 'Présélectionné',
+    'recruit.status.interview': 'Entretien',
+    'recruit.status.decision': 'Décision',
+    'recruit.status.selected': 'Retenu',
+    'recruit.status.rejected': 'Refusé',
+
+    'training.title': 'Formation & Compétences',
+    'training.subtitle': 'Catalogue de formations et suivi des compétences',
+    'training.new': 'Nouvelle formation',
+    'training.catalog': 'Catalogue',
+    'training.available': '{count} formations dispo.',
+    'training.browse': 'Parcourir',
+    'training.myTrainings': 'Mes Formations',
+    'training.inProgressCount': '0 en cours',
+    'training.viewTracking': 'Voir le suivi',
+    'training.skills': 'Compétences',
+    'training.mapping': 'Cartographie',
+    'training.evaluate': 'Évaluer',
+    'training.annualPlan': 'Plan de formation annuel',
+    'training.table.training': 'Formation',
+    'training.table.department': 'Département',
+    'training.table.duration': 'Durée (h)',
+    'training.table.budget': 'Budget',
+    'training.table.status': 'Statut',
+    'training.none': 'Aucune formation planifiée.',
+    'training.newModal': 'Nouvelle formation',
+    'training.titlePlaceholder': 'Titre de la formation',
+    'training.departmentPlaceholder': 'Département ciblé',
+    'training.budgetPlaceholder': 'Budget (Ar)',
+    'training.hoursPlaceholder': 'Durée (heures)',
+    'training.status.planned': 'Planifié',
+    'training.status.active': 'En cours',
+    'training.status.completed': 'Terminé',
+
+    'eval.title': 'Évaluations',
+    'eval.subtitle': 'Campagnes d\'entretiens et grilles d\'évaluation',
+    'eval.new': 'Nouvelle évaluation',
+    'eval.history': 'Historique des évaluations',
+    'eval.table.campaign': 'Campagne',
+    'eval.table.employee': 'Employé',
+    'eval.table.score': 'Score Global',
+    'eval.table.date': 'Date',
+    'eval.table.actions': 'Actions',
+    'eval.unknown': 'Inconnu',
+    'eval.exportPdf': 'Exporter en PDF',
+    'eval.none': 'Aucune évaluation trouvée.',
+    'eval.selectEmployee': 'Sélectionner un employé...',
+    'eval.campaignPlaceholder': 'Nom de la campagne (ex: Annuelle 2026)',
+    'eval.scorePlaceholder': 'Score (1 à 5)',
+    'eval.comments': 'Commentaires',
+
+    'profile.loading': 'Chargement...',
+    'profile.notFound': 'Profil non trouvé. Veuillez contacter les RH.',
+    'profile.title': 'Mon Dossier RH',
+    'profile.subtitle': 'Consultez vos informations personnelles et vos fiches de paie',
+    'profile.contact': 'Contact',
+    'profile.professional': 'Professionnel',
+    'profile.phone': 'Téléphone',
+    'profile.address': 'Adresse',
+    'profile.department': 'Département',
+    'profile.contract': 'Contrat',
+    'profile.notProvided': 'Non renseigné',
+    'profile.add': 'Ajouter',
+    'profile.edit': 'Modifier',
+    'profile.payrolls': 'Mes Fiches de Paie',
+    'profile.net': 'Net',
+    'profile.downloadPdf': 'Télécharger PDF',
+    'profile.noPayroll': 'Aucune fiche de paie disponible.',
   },
   mg: {
     'app.title': 'RISE HR',
@@ -71,14 +241,184 @@ const translations = {
     'common.save': 'Tahirizina',
     'common.cancel': 'Hanafoana',
     'common.delete': 'Fafana',
-    'common.add': 'Hanampy'
+    'common.add': 'Hanampy',
+    'common.loading': 'Eo am-pamenoana...',
+    'nav.profile': 'Ny antontan-taratasy RH',
+    'nav.onboarding': 'Fampidirana',
+    'nav.myLeaves': 'Ny fialan-tsasatro',
+    'nav.leaveManagement': 'Fialan-tsasatra & tsy fahatongavana',
+    'nav.settings': 'Fikirana',
+    'auth.login': 'Hiditra',
+    'auth.or': 'Na',
+    'auth.invalidCredentials': 'Diso ny mailaka na teny miafina.',
+    'auth.loginInProgress': 'Miditra...',
+    'auth.popupBlocked': 'Nosakanan\'ny navigateur ny varavarankely Google. Alefaso ny popup na sokafy amin\'ny takelaka vaovao ny app.',
+    'auth.popupCancelled': 'Nofoanana ny fidirana. Andramo indray raha te hiditra amin\'ny Google ianao.',
+    'auth.genericError': 'Nisy olana nandritra ny fidirana. Jereo azafady ny fifandraisana internet.',
+
+    'settings.title': 'Fikirana kaonty',
+    'settings.subtitle': 'Tantano ny safidinao sy ny fiarovana ny kaontinao',
+    'settings.preferences': 'Safidy',
+    'settings.preferencesDesc': 'Hanova ny tenim-pampiharana',
+    'settings.language': 'Fiteny',
+    'settings.security': 'Fiarovana',
+    'settings.securityDesc': 'Hanova ny teny miafinao',
+    'settings.currentPassword': 'Teny miafina ankehitriny',
+    'settings.newPassword': 'Teny miafina vaovao',
+    'settings.confirmPassword': 'Hamafiso ny teny miafina vaovao',
+    'settings.updatePassword': 'Hanavao ny teny miafina',
+    'settings.updating': 'Eo am-panavaozana...',
+    'settings.passwordMismatch': 'Tsy mitovy ny teny miafina vaovao.',
+    'settings.passwordTooShort': 'Tokony ho litera 6 farafahakeliny ny teny miafina.',
+    'settings.passwordUpdated': 'Navaozina soa aman-tsara ny teny miafina.',
+    'settings.currentPasswordInvalid': 'Diso ny teny miafina ankehitriny.',
+    'settings.passwordUpdateError': 'Nisy olana nandritra ny fanavaozana ny teny miafina.',
+
+    'leaves.title': 'Fialan-tsasatra & Tsy fahatongavana',
+    'leaves.subtitle': 'Tantano ny fangatahana fialan-tsasatrao ary jereo ny solde-nao',
+    'leaves.newRequest': 'Fangatahana vaovao',
+    'leaves.balancePaid': 'Solde fialan-tsasatra voaloa',
+    'leaves.days': 'andro',
+    'leaves.earnedRate': 'Voaangona: 2.5 andro / volana',
+    'leaves.history': 'Tantaran\'ny fangatahako',
+    'leaves.table.type': 'Karazana',
+    'leaves.table.from': 'Avy',
+    'leaves.table.to': 'Hatramin\'ny',
+    'leaves.table.reason': 'Antony',
+    'leaves.table.status': 'Sata',
+    'leaves.table.actions': 'Hetsika',
+    'leaves.cancelRequest': 'Hanafoana fangatahana',
+    'leaves.none': 'Tsy misy fangatahana fialan-tsasatra.',
+    'leaves.modalTitle': 'Fangatahana fialan-tsasatra vaovao',
+    'leaves.leaveType': 'Karazana fialan-tsasatra',
+    'leaves.startDate': 'Daty fanombohana',
+    'leaves.endDate': 'Daty fiafarana',
+    'leaves.reasonOptional': 'Antony (tsy voatery)',
+    'leaves.submit': 'Alefa',
+    'leaves.confirmDelete': 'Azonao antoka ve fa hanafoana ity fangatahana ity ianao?',
+    'leaves.error.endBeforeStart': 'Tsy afaka aloha noho ny daty fanombohana ny daty fiafarana.',
+    'leaves.error.submit': 'Nisy olana nandritra ny fandefasana.',
+    'leaves.error.insufficient': 'Tsy ampy ny solde. Mangataka {requested} andro ianao nefa {balance} andro ny solde.',
+    'leaves.status.pending': 'Miandry',
+    'leaves.status.approvedManager': 'Nankatoavin\'ny Manager',
+    'leaves.status.approvedRh': 'Nankatoavin\'ny RH',
+    'leaves.status.rejected': 'Nolavina',
+    'leaves.type.annuel': 'Fialan-tsasatra isan-taona',
+    'leaves.type.maladie': 'Fialan-tsasatra aretina',
+    'leaves.type.maternite': 'Fialan-tsasatra fiterahana (14 herinandro)',
+    'leaves.type.paternite': 'Fialan-tsasatra ray',
+    'leaves.type.sans_solde': 'Fialan-tsasatra tsy karama',
+
+    'leaveManagement.title': 'Fitantanana fialan-tsasatra',
+    'leaveManagement.subtitle': 'Tantano ny fangatahana fialan-tsasatry ny ekipa',
+    'leaveManagement.table.employee': 'Mpiasa',
+    'leaveManagement.table.type': 'Karazana',
+    'leaveManagement.table.from': 'Avy',
+    'leaveManagement.table.to': 'Hatramin\'ny',
+    'leaveManagement.table.status': 'Sata',
+    'leaveManagement.table.actions': 'Hetsika',
+    'leaveManagement.unknown': 'Tsy fantatra',
+    'leaveManagement.approveManager': 'Ankatoavy (Manager)',
+    'leaveManagement.approveHr': 'Ankatoavy (RH)',
+    'leaveManagement.reject': 'Lavina',
+
+    'recruit.title': 'Fandraisana mpiasa',
+    'recruit.subtitle': 'Fitantanana tolotra sy fanaraha-maso kandidà',
+    'recruit.candidate': 'Kandidà',
+    'recruit.newOffer': 'Tolotra vaovao',
+    'recruit.tab.offers': 'Tolotra asa',
+    'recruit.tab.pipeline': 'Pipeline kandidà',
+    'recruit.department': 'Sampana',
+    'recruit.location': 'Toerana',
+    'recruit.contract': 'Fifanarahana',
+    'recruit.candidates': 'Kandidà',
+    'recruit.viewPipeline': 'Hijery pipeline',
+    'recruit.noneOffers': 'Tsy misy tolotra asa.',
+    'recruit.spontaneous': 'Kandidà tsy voatokana',
+    'recruit.newOfferModal': 'Tolotra asa vaovao',
+    'recruit.positionTitle': 'Lohatenin\'ny asa',
+    'recruit.description': 'Famaritana',
+    'recruit.save': 'Tehirizo',
+    'recruit.newCandidate': 'Kandidà vaovao',
+    'recruit.selectOffer': 'Safidio ny tolotra...',
+    'recruit.firstName': 'Anarana',
+    'recruit.lastName': 'Fanampin\'anarana',
+    'recruit.status.received': 'Voaray',
+    'recruit.status.shortlisted': 'Voafantina',
+    'recruit.status.interview': 'Antsoina resadresaka',
+    'recruit.status.decision': 'Fanapahan-kevitra',
+    'recruit.status.selected': 'Voaray',
+    'recruit.status.rejected': 'Nolavina',
+
+    'training.title': 'Fiofanana & Fahaiza-manao',
+    'training.subtitle': 'Katalaogy fiofanana sy fanaraha-maso fahaiza-manao',
+    'training.new': 'Fiofanana vaovao',
+    'training.catalog': 'Katalaogy',
+    'training.available': '{count} fiofanana misy.',
+    'training.browse': 'Hijery',
+    'training.myTrainings': 'Ny fiofanako',
+    'training.inProgressCount': '0 mandeha',
+    'training.viewTracking': 'Hijery fanaraha-maso',
+    'training.skills': 'Fahaiza-manao',
+    'training.mapping': 'Sarintany',
+    'training.evaluate': 'Handrefy',
+    'training.annualPlan': 'Drafitra fiofanana isan-taona',
+    'training.table.training': 'Fiofanana',
+    'training.table.department': 'Sampana',
+    'training.table.duration': 'Faharetana (h)',
+    'training.table.budget': 'Teti-bola',
+    'training.table.status': 'Sata',
+    'training.none': 'Tsy misy fiofanana voalahatra.',
+    'training.newModal': 'Fiofanana vaovao',
+    'training.titlePlaceholder': 'Lohatenin\'ny fiofanana',
+    'training.departmentPlaceholder': 'Sampana kendrena',
+    'training.budgetPlaceholder': 'Teti-bola (Ar)',
+    'training.hoursPlaceholder': 'Faharetana (ora)',
+    'training.status.planned': 'Voalahatra',
+    'training.status.active': 'Mandeha',
+    'training.status.completed': 'Vita',
+
+    'eval.title': 'Fanombanana',
+    'eval.subtitle': 'Fampielezan-kevitra sy tabilao fanombanana',
+    'eval.new': 'Fanombanana vaovao',
+    'eval.history': 'Tantaran\'ny fanombanana',
+    'eval.table.campaign': 'Fampielezan-kevitra',
+    'eval.table.employee': 'Mpiasa',
+    'eval.table.score': 'Naoty ankapobeny',
+    'eval.table.date': 'Daty',
+    'eval.table.actions': 'Hetsika',
+    'eval.unknown': 'Tsy fantatra',
+    'eval.exportPdf': 'Aondrana PDF',
+    'eval.none': 'Tsy misy fanombanana hita.',
+    'eval.selectEmployee': 'Safidio ny mpiasa...',
+    'eval.campaignPlaceholder': 'Anaran\'ny fampielezan-kevitra (oh: Annuelle 2026)',
+    'eval.scorePlaceholder': 'Naoty (1 hatramin\'ny 5)',
+    'eval.comments': 'Fanamarihana',
+
+    'profile.loading': 'Eo am-pamenoana...',
+    'profile.notFound': 'Tsy hita ny mombamomba. Mifandraisa amin\'ny RH.',
+    'profile.title': 'Ny antontan-taratasy RH',
+    'profile.subtitle': 'Jereo ny mombamomba anao sy ny taratasy karamao',
+    'profile.contact': 'Fifandraisana',
+    'profile.professional': 'Asa',
+    'profile.phone': 'Finday',
+    'profile.address': 'Adiresy',
+    'profile.department': 'Sampana',
+    'profile.contract': 'Fifanarahana',
+    'profile.notProvided': 'Tsy voatondro',
+    'profile.add': 'Hanampy',
+    'profile.edit': 'Hanova',
+    'profile.payrolls': 'Ny taratasy karamako',
+    'profile.net': 'Net',
+    'profile.downloadPdf': 'Sintomy PDF',
+    'profile.noPayroll': 'Tsy misy taratasy karama azo jerena.',
   }
 };
 
 interface I18nContextType {
   lang: Language;
   setLang: (lang: Language) => void;
-  t: (key: keyof typeof translations['fr']) => string;
+  t: (key: string) => string;
 }
 
 const I18nContext = createContext<I18nContextType>({
@@ -88,27 +428,38 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export const I18nProvider = ({ children }: { children: React.ReactNode }) => {
-  const [lang, setLangState] = useState<Language>('fr');
+  const [lang, setLangState] = useState<Language>(() => {
+    if (typeof window === 'undefined') {
+      return 'fr';
+    }
+
+    const savedLang = localStorage.getItem('rise_hr_lang') as Language | null;
+    if (savedLang === 'fr' || savedLang === 'mg') {
+      return savedLang;
+    }
+
+    return navigator.language.toLowerCase().startsWith('mg') ? 'mg' : 'fr';
+  });
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('rise_hr_lang') as Language;
-    if (savedLang && (savedLang === 'fr' || savedLang === 'mg')) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLangState(savedLang);
-    }
-  }, []);
+    document.documentElement.lang = lang;
+  }, [lang]);
 
-  const setLang = (newLang: Language) => {
+  const setLang = useCallback((newLang: Language) => {
     setLangState(newLang);
     localStorage.setItem('rise_hr_lang', newLang);
-  };
+  }, []);
 
-  const t = (key: keyof typeof translations['fr']) => {
-    return translations[lang][key] || key;
-  };
+  const t = useCallback((key: string) => {
+    const table = translations[lang] as Record<string, string>;
+    const frTable = translations.fr as Record<string, string>;
+    return table[key] ?? frTable[key] ?? key;
+  }, [lang]);
+
+  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
 
   return (
-    <I18nContext.Provider value={{ lang, setLang, t }}>
+    <I18nContext.Provider value={value}>
       {children}
     </I18nContext.Provider>
   );

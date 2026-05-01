@@ -6,9 +6,11 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { User, Mail, Phone, MapPin, Briefcase, FileText, Download, Building2, Edit2, Check, X } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { useI18n } from '@/lib/i18n';
 
 export default function ProfilePage() {
   const { user, role } = useAuth();
+  const { t, lang } = useI18n();
   const [profile, setProfile] = useState<any>(null);
   const [payrolls, setPayrolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,7 @@ export default function ProfilePage() {
                 value={editValue}
                 onChange={(e) => setEditValue(e.target.value)}
                 className="w-full border border-gray-300 rounded px-2 py-1 text-sm focus:ring-[#1B2A4A] focus:border-[#1B2A4A] outline-none"
-                placeholder={`Saisir ${label.toLowerCase()}`}
+                placeholder={`${t('common.add')} ${label.toLowerCase()}`}
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSaveField(field);
@@ -111,7 +113,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <span className={isEmpty ? 'text-gray-400 italic text-sm' : ''}>
-              {isEmpty ? 'Non renseigné' : value}
+              {isEmpty ? t('profile.notProvided') : value}
             </span>
           )}
         </div>
@@ -119,7 +121,7 @@ export default function ProfilePage() {
           <button 
             onClick={() => { setEditingField(field); setEditValue(value || ''); }}
             className="opacity-0 group-hover:opacity-100 text-blue-600 hover:bg-blue-50 p-1.5 rounded transition-all"
-            title={isEmpty ? "Ajouter" : "Modifier"}
+            title={isEmpty ? t('profile.add') : t('profile.edit')}
           >
             <Edit2 size={14} />
           </button>
@@ -139,7 +141,7 @@ export default function ProfilePage() {
     doc.text(`Employé: ${profile.firstName} ${profile.lastName}`, 20, 40);
     doc.text(`Poste: ${profile.position}`, 20, 50);
     
-    const monthName = new Date(payroll.year, payroll.month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const monthName = new Date(payroll.year, payroll.month - 1).toLocaleDateString(lang === 'mg' ? 'mg-MG' : 'fr-FR', { month: 'long', year: 'numeric' });
     doc.text(`Période: ${monthName}`, 20, 60);
     
     doc.line(20, 65, 190, 65);
@@ -173,14 +175,14 @@ export default function ProfilePage() {
     doc.save(`Fiche_Paie_${monthName.replace(' ', '_')}.pdf`);
   };
 
-  if (loading) return <div>Chargement...</div>;
-  if (!profile) return <div>Profil non trouvé. Veuillez contacter les RH.</div>;
+  if (loading) return <div>{t('profile.loading')}</div>;
+  if (!profile) return <div>{t('profile.notFound')}</div>;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Mon Dossier RH</h1>
-        <p className="text-gray-500 mt-1">Consultez vos informations personnelles et vos fiches de paie</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('profile.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('profile.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -204,24 +206,24 @@ export default function ProfilePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Contact</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('profile.contact')}</h3>
                   <div className="flex items-center gap-3 text-gray-600">
                     <Mail size={18} className="text-gray-400" />
                     <span>{user?.email}</span>
                   </div>
-                  {renderEditableField('phone', 'Téléphone', <Phone size={18} className="text-gray-400" />, profile.phone)}
-                  {renderEditableField('address', 'Adresse', <MapPin size={18} className="text-gray-400" />, profile.address)}
+                  {renderEditableField('phone', t('profile.phone'), <Phone size={18} className="text-gray-400" />, profile.phone)}
+                  {renderEditableField('address', t('profile.address'), <MapPin size={18} className="text-gray-400" />, profile.address)}
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Professionnel</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">{t('profile.professional')}</h3>
                   <div className="flex items-center gap-3 text-gray-600">
                     <Building2 size={18} className="text-gray-400" />
-                    <span>Département: {profile.department}</span>
+                    <span>{t('profile.department')}: {profile.department}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-600">
                     <Briefcase size={18} className="text-gray-400" />
-                    <span>Contrat: {profile.contractType}</span>
+                    <span>{t('profile.contract')}: {profile.contractType}</span>
                   </div>
                   {renderEditableField('cin', 'CIN', <FileText size={18} className="text-gray-400" />, profile.cin)}
                 </div>
@@ -235,23 +237,23 @@ export default function ProfilePage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <FileText size={20} className="text-blue-600" />
-              Mes Fiches de Paie
+              {t('profile.payrolls')}
             </h3>
             
             <div className="space-y-3">
               {payrolls.length > 0 ? (
                 payrolls.map(payroll => {
-                  const monthName = new Date(payroll.year, payroll.month - 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                  const monthName = new Date(payroll.year, payroll.month - 1).toLocaleDateString(lang === 'mg' ? 'mg-MG' : 'fr-FR', { month: 'long', year: 'numeric' });
                   return (
                     <div key={payroll.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
                       <div>
                         <p className="font-medium text-gray-900 capitalize">{monthName}</p>
-                        <p className="text-xs text-gray-500">Net: {payroll.netSalary.toLocaleString()} Ar</p>
+                        <p className="text-xs text-gray-500">{t('profile.net')}: {payroll.netSalary.toLocaleString()} Ar</p>
                       </div>
                       <button 
                         onClick={() => downloadPayslip(payroll)}
                         className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                        title="Télécharger PDF"
+                        title={t('profile.downloadPdf')}
                       >
                         <Download size={18} />
                       </button>
@@ -259,7 +261,7 @@ export default function ProfilePage() {
                   );
                 })
               ) : (
-                <p className="text-sm text-gray-500 text-center py-4">Aucune fiche de paie disponible.</p>
+                <p className="text-sm text-gray-500 text-center py-4">{t('profile.noPayroll')}</p>
               )}
             </div>
           </div>
