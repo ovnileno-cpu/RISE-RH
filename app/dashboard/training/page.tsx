@@ -124,15 +124,15 @@ export default function TrainingPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={role !== 'employee' ? 5 : 4} className="p-4 text-center">{t('common.loading')}</td></tr>
-              ) : trainings.map(t => (
-                <tr key={t.id} className="border-b border-gray-50">
-                  <td className="p-4 text-sm text-gray-900 font-medium">{t.title}</td>
-                  <td className="p-4 text-sm text-gray-600">{t.department}</td>
-                  <td className="p-4 text-sm text-gray-600">{t.hours || 0}h</td>
-                  {role !== 'employee' && <td className="p-4 text-sm text-gray-600">{t.budget.toLocaleString()} Ar</td>}
+              ) : trainings.map(training => (
+                <tr key={training.id} className="border-b border-gray-50">
+                  <td className="p-4 text-sm text-gray-900 font-medium">{training.title}</td>
+                  <td className="p-4 text-sm text-gray-600">{training.department}</td>
+                  <td className="p-4 text-sm text-gray-600">{training.hours || 0}h</td>
+                  {role !== 'employee' && <td className="p-4 text-sm text-gray-600">{training.budget.toLocaleString()} Ar</td>}
                   <td className="p-4 text-sm text-gray-600">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${t.status === 'planned' ? 'bg-amber-50 text-amber-700' : t.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                      {t.status === 'planned' ? t('training.status.planned') : t.status === 'active' ? t('training.status.active') : t('training.status.completed')}
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${training.status === 'planned' ? 'bg-amber-50 text-amber-700' : training.status === 'active' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                      {training.status === 'planned' ? t('training.status.planned') : training.status === 'active' ? t('training.status.active') : t('training.status.completed')}
                     </span>
                   </td>
                 </tr>
@@ -150,11 +150,11 @@ export default function TrainingPage() {
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">{t('training.new')}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input required type="text" placeholder="{t('training.titlePlaceholder')}" className="w-full border rounded-lg p-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-              <input required type="text" placeholder="{t('training.departmentPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
+              <input required type="text" placeholder={t('training.titlePlaceholder')} className="w-full border rounded-lg p-2" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+              <input required type="text" placeholder={t('training.departmentPlaceholder')} className="w-full border rounded-lg p-2" value={formData.department} onChange={e => setFormData({...formData, department: e.target.value})} />
               <div className="grid grid-cols-2 gap-4">
-                <input required type="number" placeholder="{t('training.budgetPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} />
-                <input required type="number" placeholder="{t('training.hoursPlaceholder')}" className="w-full border rounded-lg p-2" value={formData.hours || ''} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} />
+                <input required type="number" placeholder={t('training.budgetPlaceholder')} className="w-full border rounded-lg p-2" value={formData.budget || ''} onChange={e => setFormData({...formData, budget: Number(e.target.value)})} />
+                <input required type="number" placeholder={t('training.hoursPlaceholder')} className="w-full border rounded-lg p-2" value={formData.hours || ''} onChange={e => setFormData({...formData, hours: Number(e.target.value)})} />
               </div>
               <select className="w-full border rounded-lg p-2" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>
                 <option value="planned">{t('training.status.planned')}</option>

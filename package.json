@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean"
+    "clean": "rm -rf .next out"
   },
   "dependencies": {
     "@firebase/eslint-plugin-security-rules": "^0.0.2",
