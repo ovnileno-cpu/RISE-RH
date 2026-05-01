@@ -9,7 +9,7 @@ import jsPDF from 'jspdf';
 import { FileText } from 'lucide-react';
 
 export default function PayrollTab() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,29 +53,29 @@ export default function PayrollTab() {
     const doc = new jsPDF();
     
     doc.setFontSize(20);
-    doc.text("RISE HR - Fiche de Paie", 105, 20, { align: "center" });
+    doc.text(t('payroll.pdf.title'), 105, 20, { align: "center" });
     
     doc.setFontSize(12);
-    doc.text(`Employé: ${emp.firstName} ${emp.lastName}`, 20, 40);
-    doc.text(`Poste: ${emp.position}`, 20, 50);
-    doc.text(`Mois: ${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`, 20, 60);
+    doc.text(`${t('payroll.pdf.employee')}: ${emp.firstName} ${emp.lastName}`, 20, 40);
+    doc.text(`${t('payroll.pdf.position')}: ${emp.position}`, 20, 50);
+    doc.text(`${t('payroll.pdf.month')}: ${new Date().toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'mg-MG', { month: 'long', year: 'numeric' })}`, 20, 60);
     
     doc.line(20, 65, 190, 65);
     
     let y = 80;
-    doc.text("Désignation", 20, y);
-    doc.text("Montant (Ar)", 150, y);
+    doc.text(t('payroll.pdf.designation'), 20, y);
+    doc.text(t('payroll.pdf.amountAr'), 150, y);
     y += 10;
     
-    doc.text("Salaire de base", 20, y);
+    doc.text(t('payroll.pdf.baseSalary'), 20, y);
     doc.text(`${result.grossSalary.toLocaleString()}`, 150, y);
     y += 10;
     
-    doc.text("Retenue CNaPS (1%)", 20, y);
+    doc.text(t('payroll.pdf.cnapsDeduction'), 20, y);
     doc.text(`-${result.cnapsEmployee.toLocaleString()}`, 150, y);
     y += 10;
     
-    doc.text("Retenue OSIEM (1%)", 20, y);
+    doc.text(t('payroll.pdf.osiemDeduction'), 20, y);
     doc.text(`-${result.osiemEmployee.toLocaleString()}`, 150, y);
     y += 10;
     
@@ -85,17 +85,17 @@ export default function PayrollTab() {
     
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("NET À PAYER", 20, y);
+    doc.text(t('payroll.pdf.netToPay'), 20, y);
     doc.text(`${result.netSalary.toLocaleString()} Ar`, 150, y);
     
     doc.save(`Fiche_Paie_${emp.lastName}_${new Date().getMonth() + 1}_${new Date().getFullYear()}.pdf`);
   };
 
-  if (loading) return <div>Chargement...</div>;
+  if (loading) return <div>{t('common.loading')}</div>;
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-gray-900 mb-6">Traitement de la paie</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-6">{t('payroll.title')}</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {employees.map(emp => {
@@ -114,19 +114,19 @@ export default function PayrollTab() {
               
               <div className="space-y-2 mb-6">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Base:</span>
+                  <span className="text-gray-500">{t('payroll.baseLabel')}:</span>
                   <span className="font-medium">{payroll.grossSalary.toLocaleString()} Ar</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">CNaPS/OSIEM:</span>
+                  <span className="text-gray-500">{t('payroll.cnapsOsiemLabel')}:</span>
                   <span className="text-red-500">-{ (payroll.cnapsEmployee + payroll.osiemEmployee).toLocaleString() } Ar</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">IRSA:</span>
+                  <span className="text-gray-500">{t('payroll.irsaLabel')}:</span>
                   <span className="text-red-500">-{ payroll.irsa.toLocaleString() } Ar</span>
                 </div>
                 <div className="pt-2 border-t border-gray-100 flex justify-between">
-                  <span className="font-semibold text-gray-900">Net:</span>
+                  <span className="font-semibold text-gray-900">{t('payroll.netLabel')}:</span>
                   <span className="font-bold text-emerald-600">{payroll.netSalary.toLocaleString()} Ar</span>
                 </div>
               </div>
@@ -142,7 +142,7 @@ export default function PayrollTab() {
           );
         })}
         {employees.length === 0 && (
-          <div className="col-span-full p-8 text-center text-gray-500">Aucun employé trouvé.</div>
+          <div className="col-span-full p-8 text-center text-gray-500">{t('employees.none')}</div>
         )}
       </div>
     </div>
