@@ -6,6 +6,9 @@ import { useAuth } from '@/lib/auth';
 import { signInWithGoogle, signInWithEmailAndPassword, auth } from '@/lib/firebase';
 import { useI18n } from '@/lib/i18n';
 import { Building2, WifiOff, Mail, Lock } from 'lucide-react';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -16,6 +19,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   useEffect(() => {
     // Register Service Worker
@@ -72,6 +76,45 @@ export default function LoginPage() {
       } else {
         setError(t('auth.genericError'));
       }
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    setError('');
+    setIsSigningUp(true);
+    try {
+      const googleUser = await signInWithGoogle();
+      if (!googleUser) return;
+      const uid = googleUser.uid;
+      const userRef = doc(db, 'users', uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        router.replace('/dashboard');
+        return;
+      }
+
+      await setDoc(doc(db, 'signupRequests', uid), {
+        uid,
+        email: googleUser.email,
+        displayName: googleUser.displayName || '',
+        photoURL: googleUser.photoURL || '',
+        status: 'pending',
+        createdAt: serverTimestamp()
+      }, { merge: true });
+
+      await signOut(auth);
+      setError(t('signup.requestSent'));
+    } catch (err: any) {
+      if (err.code === 'auth/popup-blocked') {
+        setError(t('auth.popupBlocked'));
+      } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
+        setError(t('auth.popupCancelled'));
+      } else {
+        setError(t('auth.genericError'));
+      }
+    } finally {
+      setIsSigningUp(false);
     }
   };
 
@@ -178,6 +221,15 @@ export default function LoginPage() {
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
           {t('login.button')}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          disabled={isSigningUp}
+          className="w-full mt-3 bg-[#1B2A4A] border border-[#1B2A4A] hover:bg-[#2A3F6C] text-white font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-70"
+        >
+          {isSigningUp ? t('auth.loginInProgress') : t('signup.button')}
         </button>
       </div>
     </div>
