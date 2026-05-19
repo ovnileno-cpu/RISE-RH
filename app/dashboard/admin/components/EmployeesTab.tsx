@@ -31,6 +31,11 @@ export default function EmployeesTab() {
 
   const [employeeToDelete, setEmployeeToDelete] = useState<any | null>(null);
 
+  const normalizeDepartment = (value: string) => {
+    const cleaned = (value || '').trim();
+    return cleaned.toLowerCase() === 'z' ? '' : cleaned;
+  };
+
   const fetchEmployees = async () => {
     setLoading(true);
     try {
@@ -103,7 +108,7 @@ export default function EmployeesTab() {
           cin: formData.cin,
           address: formData.address,
           phone: formData.phone,
-          department: formData.department,
+          department: normalizeDepartment(formData.department),
           position: formData.position,
           contractType: formData.contractType,
           baseSalary: Number(formData.baseSalary),
@@ -113,7 +118,7 @@ export default function EmployeesTab() {
         // Update user document (display name and department)
         await updateDoc(doc(db, 'users', editingId), {
           displayName: `${formData.firstName} ${formData.lastName}`,
-          department: formData.department
+          department: normalizeDepartment(formData.department)
         });
 
       } else {
@@ -127,7 +132,7 @@ export default function EmployeesTab() {
           email: formData.email,
           displayName: `${formData.firstName} ${formData.lastName}`,
           role: 'employee',
-          department: formData.department,
+          department: normalizeDepartment(formData.department),
           createdAt: new Date().toISOString()
         });
 
@@ -139,7 +144,7 @@ export default function EmployeesTab() {
           cin: formData.cin,
           address: formData.address,
           phone: formData.phone,
-          department: formData.department,
+          department: normalizeDepartment(formData.department),
           position: formData.position,
           contractType: formData.contractType,
           baseSalary: Number(formData.baseSalary),
@@ -240,7 +245,7 @@ export default function EmployeesTab() {
                     <p>{t('profile.phone')}: {emp.phone || t('profile.notProvided')}</p>
                   </div>
                 </td>
-                <td className="p-4 text-sm text-gray-600">{emp.department}</td>
+                <td className="p-4 text-sm text-gray-600">{emp.department && emp.department.trim().toLowerCase() !== 'z' ? emp.department : t('employees.undefinedDepartment')}</td>
                 <td className="p-4 text-sm text-gray-600">{emp.position}</td>
                 <td className="p-4 text-sm text-gray-600">
                   <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">{emp.contractType}</span>
